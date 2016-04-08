@@ -10,6 +10,7 @@
 
 % Notice: first use "mex -setup" to choose your c/c++ compiler
 
+
 %-------------------------------------------------------------------
 %% get the architecture of this computer
 is_64bit = strcmp(computer,'MACI64') || strcmp(computer,'GLNXA64') || strcmp(computer,'PCWIN64');
@@ -20,16 +21,17 @@ is_64bit = strcmp(computer,'MACI64') || strcmp(computer,'GLNXA64') || strcmp(com
 % You need to modify this configuration according to your own path of OpenCV
 % Notice: if your system is 64bit, your OpenCV must be 64bit!
 out_dir='./bin';
-CPPFLAGS = ' -O -DNDEBUG ';  % "include" path
-LDFLAGS = ' -L.\lib\Release\ ';	% "lib" path
-LIBS = ' -llibASIFT';
+CPPFLAGS = ' -O -DNDEBUG -IC:/SDK/OpenCV/include/ ';  % your OpenCV "include" path
+LDFLAGS = ' -LC:/SDK/OpenCV/x64/vc14/lib/ ';	% your OpenCV "lib" path
+LIBS = ' ';
 if is_64bit
 	CPPFLAGS = [CPPFLAGS ' -largeArrayDims'];
 end
 %% add your files here!
 compile_files = { 
 	% the list of your code files which need to be compiled
-	'./src/mexASIFT.cpp'
+	'./src/mexMatching.cpp'
+
 };
 
 
