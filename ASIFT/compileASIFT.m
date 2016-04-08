@@ -19,7 +19,7 @@ is_64bit = strcmp(computer,'MACI64') || strcmp(computer,'GLNXA64') || strcmp(com
 %% the configuration of compiler
 % You need to modify this configuration according to your own path of OpenCV
 % Notice: if your system is 64bit, your OpenCV must be 64bit!
-out_dir='./bin';
+out_dir='../mex';
 CPPFLAGS = ' -O -DNDEBUG ';  % "include" path
 LDFLAGS = ' -L.\lib\Release\ ';	% "lib" path
 LIBS = ' -llibASIFT';
