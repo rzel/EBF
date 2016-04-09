@@ -7,11 +7,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 #	Openmp is accessible only on the professionnal version of Visual Studio.
 # 	In order to use OPENMP in visual your have to add the preprocessor _OPENMP
 # 	and enable OPENMP library in C/C++/Language.
-PROJECT(ASIFT)
-
-#ADD_SUBDIRECTORY(io_png)
-#ADD_SUBDIRECTORY(libMatch)
-ADD_SUBDIRECTORY(libNumerics)
+PROJECT(libASIFT)
 
 FIND_PACKAGE(OpenMP) 
 if (OPENMP_FOUND) 
@@ -30,15 +26,14 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
 ENDIF(CMAKE_COMPILER_IS_GNUCXX)
 
 
-set(ASIFT_srcs
+set(SOURCES
 	numerics1.cpp frot.cpp splines.cpp fproj.cpp
 	library.cpp flimage.cpp filter.cpp
 	demo_lib_sift.cpp compute_asift_keypoints.cpp
+	
+	computeH.cpp homography.cpp matrix.cpp 
+    numerics.cpp rodrigues.cpp vector.cpp
 	)
 	
-
-SET( LIBRARY_OUTPUT_PATH  ${PROJECT_SOURCE_DIR}/../lib )
-add_library(libASIFT ${ASIFT_srcs})
-TARGET_LINK_LIBRARIES(libASIFT  zlib  Numerics)
-
-
+SET( LIBRARY_OUTPUT_PATH  ${PROJECT_SOURCE_DIR}/../lib/ )
+add_library(libASIFT ${SOURCES})
