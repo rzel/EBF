@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include <vector>
+#include "frame.h"
 using namespace std;
 
 #include <omp.h>
@@ -12,10 +13,7 @@ using namespace std;
 #include "fproj.h"
 #include "compute_asift_keypoints.h"
 
-struct FRAME{
-	float *img; size_t w; size_t h; int numTilts; int flag_resize;
-	int num_keys;  float *kpts;  float *desp;
-};
+
 
 
 

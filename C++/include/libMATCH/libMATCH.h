@@ -1,13 +1,11 @@
 #include<vector>
 #include<opencv2/opencv.hpp>
 #include<opencv2/features2d.hpp>
+#include<frame.h>
 using namespace std;
 using namespace cv;
 
-// base on sift match 
-void flann_match1(Mat &d1, Mat &d2, vector<DMatch>&matches, vector<DMatch>&matches_all, float threshold);
 
-
-// efficient match   matches.distance < threshold * MinDistance 
-void flann_match2(Mat &d1, Mat &d2, vector<DMatch>&matches, vector<DMatch>&matches_all, float threshold);
+// flann  quality = distance[1] / distance[0] 
+void cv_match(FRAME &F1, FRAME &F2, vector<DMatch>&matches_all, vector<double> &quality);
 

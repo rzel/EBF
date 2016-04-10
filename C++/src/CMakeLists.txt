@@ -16,10 +16,12 @@ ADD_LIBRARY( libMATCH ${libMATCH_SRC} )
 TARGET_LINK_LIBRARIES( libMATCH  ${OpenCV_LIBS} )
 
 
-# testAsiftAndMatch
-ADD_EXECUTABLE( testAsiftAndMatch  ./test/testAsiftAndMatch.cpp )
-TARGET_LINK_LIBRARIES( testAsiftAndMatch  
-libASIFT libMATCH ${OpenCV_LIBS} 
+# EBF
+AUX_SOURCE_DIRECTORY( ./EBF  EBF_SRC )
+INCLUDE_DIRECTORIES( ../include/EBF )
+ADD_EXECUTABLE( EBF  ${EBF_SRC})
+TARGET_LINK_LIBRARIES( EBF  
+libASIFT libMATCH libLBFGS ${OpenCV_LIBS} 
 )
 
 # testLBFGS
