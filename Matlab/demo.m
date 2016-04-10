@@ -38,6 +38,12 @@ matches = matches_all(:, b(1 : 10));
 matches_all(:, 500 : end) = [];
 toc();
 
+%normalize points
+f1(1, :) = f1(1, :) / size(img1, 2);
+f1(2, :) = f1(2, :) / size(img1, 1);
+f2(1, :) = f2(1, :) / size(img2, 2);
+f2(2, :) = f2(2, :) / size(img2, 1);
+
 
 disp('Begin our bilteral function fitting');
 %% bilteral function fitting
@@ -65,6 +71,12 @@ end;
 toc
 
 disp(strcat('number of matches:',  num2str(size(matches_i_all,2))));
+
+
+f1(1, :) = f1(1, :) * size(img1, 2);
+f1(2, :) = f1(2, :) * size(img1, 1);
+f2(1, :) = f2(1, :) * size(img2, 2);
+f2(2, :) = f2(2, :) * size(img2, 1);
 
 if display
     display_match_trad_enum(uint8(image1), uint8(image2), matches_i_all, f1(1:2,:),f2(1:2,:));
