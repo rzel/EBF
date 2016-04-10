@@ -6,16 +6,16 @@ re_clean = 1;
 display = 1;
 
 %%load data
-path_a='..\data\image047.jpg';
-path_b='..\data\image048.jpg';
+path_a='E:/kitti/dataset/sequences/01/image_0/000000.png';
+path_b='E:/kitti/dataset/sequences/01/image_0/000010.png';
 
 %pre-process image 
-res = 480;
+res = 320;
 [image1]=im_prepare(path_a,res);
 [image2]=im_prepare(path_b,res);
 
-img1 = single(rgb2gray(image1));
-img2 = single(rgb2gray(image2));
+img1 = single(image1);
+img2 = single(image2);
 
 
 %% ASIFT
@@ -23,20 +23,19 @@ img2 = single(rgb2gray(image2));
 % numTiltes : ASIFT paramter, defalut is 7, but 3 is OK.
 disp('start asift');
 resize = 0;
-numTiltes = 7;
+numTiltes = 1;
 tic();
 [f1, f2, d1, d2] = ASIFT(img1, img2, numTiltes, resize);
 toc();
 
 %% matching
-% flag_flann == 0 : BFMatcher     slow !
-% flag_flann == 1 : FlannMatcher  efficient but not expression !
-% sift_thres == 1.5 : in eccv2014 paper setting
 disp('start matching');
-flag_flann = 1;
-sift_thres = 1.5;
 tic();
-[matches, matches_all] = cv_match(d1, d2, sift_thres, flag_flann);
+[matches_all, quality] = cv_match(d1, d2);
+%matches = matches_all(:, a > 1.5);
+[a, b] = sort(quality, 'descend');
+matches = matches_all(:, b(1 : 10));
+matches_all(:, 500 : end) = [];
 toc();
 
 

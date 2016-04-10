@@ -13,25 +13,17 @@ using namespace std;
 #pragma comment( lib, cvLIB("flann"))
 
 
-void match(Mat &k1, Mat &k2, vector<DMatch>&matches, vector<DMatch>&matches_all, float threshold, int flag){
-	vector<vector<DMatch>> tempmathces;
-    if(flag == 0){
-        BFMatcher Pro;
-		Pro.knnMatch(k1, k2, tempmathces, 2);
-    }
-    else if(flag == 1){
-        FlannBasedMatcher Pro;
-		Pro.knnMatch(k1, k2, tempmathces, 2);
-	};
-	matches.reserve(k1.rows);
+void match(Mat &k1, Mat &k2, vector<DMatch>&matches_all, vector<double>&quality){
+	vector<vector<DMatch>> tempMatches;
+	FlannBasedMatcher Pro;
+	Pro.knnMatch(k1, k2, tempMatches, 2);
+	
+	quality.resize(k1.rows);
 	matches_all.resize(k1.rows);
-	for (int i = 0; i < tempmathces.size(); i++)
+	for (int i = 0; i < matches_all.size(); i++)
 	{
-		if (tempmathces[i][0].distance*threshold <= tempmathces[i][1].distance)
-		{
-			matches.push_back(tempmathces[i][0]);
-		}
-		matches_all[i] = tempmathces[i][0];
+		quality[i] = tempMatches[i][1].distance / tempMatches[i][0].distance;
+		matches_all[i] = tempMatches[i][0];
 	}
 }
 
@@ -50,28 +42,21 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	Mat d2(cols2, rows2, CV_32FC1, data2);
 
 	//match
-	vector<DMatch> matches, matches_all;
-	float threshold = (float)mxGetScalar(prhs[2]);
-	int flag = (int)mxGetScalar(prhs[3]);
-	match(d1, d2, matches, matches_all, threshold, flag);
+	vector<DMatch>  matches_all;	vector<double> quality;
+	match(d1, d2, matches_all, quality);
 
 	//output
-	plhs[0] = mxCreateNumericMatrix(2, matches.size(), mxINT32_CLASS, mxREAL);
-	plhs[1] = mxCreateNumericMatrix(2, matches_all.size(), mxINT32_CLASS, mxREAL);
-
-	//output matches
-	int *m1 = (int *)mxGetPr(plhs[0]);
-	for (size_t i = 0; i < matches.size(); i++)
-	{
-		*m1++ = matches[i].queryIdx + 1;
-		*m1++ = matches[i].trainIdx + 1;
-	}
-
+	plhs[0] = mxCreateNumericMatrix(2, matches_all.size(), mxINT32_CLASS, mxREAL);
+	plhs[1] = mxCreateNumericMatrix(1, matches_all.size(), mxDOUBLE_CLASS, mxREAL);
+	
 	//output matches_all
-	int *m2 = (int *)mxGetPr(plhs[1]);
+	int *m1 = (int *)mxGetPr(plhs[0]);
 	for (size_t i = 0; i < matches_all.size(); i++)
 	{
-		*m2++ = matches_all[i].queryIdx + 1;
-		*m2++ = matches_all[i].trainIdx + 1;
+		*m1++ = matches_all[i].queryIdx + 1;
+		*m1++ = matches_all[i].trainIdx + 1;
 	}
+
+	//output good
+	memcpy((double *)mxGetPr(plhs[1]), quality.data(), sizeof(double) *matches_all.size());
 }
