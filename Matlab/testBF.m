@@ -1,15 +1,15 @@
 clear; clc;
 addpath(genpath('.'));
 
-%%paramater
+%% paramater
 re_clean = 1;
 display = 1;
 
-%%load data
+%% load data
 path_a='..\data\image047.jpg';
 path_b='..\data\image048.jpg';
 
-%pre-process image 
+%% pre-process image 
 res = 480;
 [image1]=im_prepare(path_a,res);
 [image2]=im_prepare(path_b,res);
@@ -35,10 +35,9 @@ tic();
 
 matches = matches_all(:, quality > 1.5);
 
-% [a, b] = sort(quality, 'descend');
-% matches = matches_all(:, b(1 : 10));
-% matches_all(:, 500 : end) = [];
-
+%[a, b] = sort(quality, 'descend');
+%matches = matches_all(:, b(1 : 50));
+%matches_all(:, 500 : end) = [];
 toc();
 
 %normalize points
@@ -53,13 +52,11 @@ disp('Begin our bilteral function fitting');
 thres_spatial = 0.01;
 tic
 % our filter, matches_i_all represent the cleaned correspondance
-[ matches_i_all] = filter_matches_tune(f1, f2, matches, matches_all, thres_spatial, 0.6);
+[ matches_i_all] = filter_matches(f1, f2, matches, matches_all, thres_spatial, 0.5);
 
+%second filter pass
 
-% second filter pass
-
-% if re_clean==1
-%     %if the first pass had very few matches (add more back)
+% if (re_clean==1)
 %     if size(matches_i_all,2)< 1000
 %         num_needed=1000-size(matches_i_all,2);        
 %         if size(matches,2)>num_needed
@@ -69,13 +66,12 @@ tic
 %             matches_i_all=cat(2, matches_i_all, matches);
 %         end;
 %     end;
-%     [ matches_i_all] = filter_matches_tune(f1, f2, matches_i_all, matches_all, thres_spatial, 0.7);
+%     [ matches_i_all] = filter_matches(f1, f2, matches_i_all, matches_all, thres_spatial, 0.7);
 % end;
 
 toc
 
 disp(strcat('number of matches:',  num2str(size(matches_i_all,2))));
-
 
 f1(1, :) = f1(1, :) * size(img1, 2);
 f1(2, :) = f1(2, :) * size(img1, 1);
@@ -91,10 +87,3 @@ if display
         f2(1, matches_i_all(2,:))',f2(2, matches_i_all(2,:))',2, [0 0.5 1], 1, 0);
    
 end;
-
-
-
-
-
-
-
