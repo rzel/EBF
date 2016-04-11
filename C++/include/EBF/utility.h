@@ -4,14 +4,12 @@
 inline Mat computerG_fast(Mat &X) {
 	int m = X.rows;
 	Mat one = Mat::ones(m, 1, CV_64FC1);
-	Mat sumX(m, 1, CV_64FC1);
-
-	for (int i = 0; i < m; i++)
-	{
-		sumX.at<double>(i, 0) = pow(norm(X.row(i), NORM_L2), 2);
-	}
-
-	Mat G = -2 * X * X.t() + sumX * one.t() + one * sumX.t();
+	// nornX
+	Mat XX;
+	pow(X, 2, XX);
+	Mat normX = XX * Mat::ones(X.cols, 1, CV_64FC1);
+	// get G
+	Mat G = -2 * X * X.t() + normX * one.t() + one * normX.t();
 	exp(-G, G);
 
 	return G;
@@ -20,21 +18,19 @@ inline Mat computerG_fast(Mat &X) {
 inline Mat computerG_fast(Mat &X,  Mat &Y) {
 	int m = X.rows, n = Y.rows;
 
-	// sumX
-	Mat sumX(m, 1, CV_64FC1);
-	for (int i = 0; i < m; i++)
-	{
-		sumX.at<double>(i, 0) = pow(norm(X.row(i), NORM_L2), 2);
-	}
-	// sumY
-	Mat sumY(n, 1, CV_64FC1);
-	for (int i = 0; i < n; i++)
-	{
-		sumY.at<double>(i, 0) = pow(norm(Y.row(i), NORM_L2), 2);
-	}
+	// normX
+	Mat XX;
+	pow(X, 2, XX);
+	Mat normX = XX * Mat::ones(X.cols, 1, CV_64FC1);
 
-	Mat G = -2 * X * Y.t() + sumX * Mat::ones(1, n, CV_64FC1) + 
-		Mat::ones(m, 1, CV_64FC1) * sumY.t();
+	// normY
+	Mat YY;
+	pow(Y, 2, YY);
+	Mat normY = YY * Mat::ones(Y.cols, 1, CV_64FC1);
+
+	// get G
+	Mat G = -2 * X * Y.t() + normX * Mat::ones(1, n, CV_64FC1) + 
+		Mat::ones(m, 1, CV_64FC1) * normY.t();
 	exp(-G, G);
 
 	return G;
