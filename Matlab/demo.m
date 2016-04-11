@@ -32,10 +32,13 @@ toc();
 disp('start matching');
 tic();
 [matches_all, quality] = cv_match(d1, d2);
-%matches = matches_all(:, a > 1.5);
-[a, b] = sort(quality, 'descend');
-matches = matches_all(:, b(1 : 10));
-matches_all(:, 500 : end) = [];
+
+matches = matches_all(:, quality > 1.5);
+
+% [a, b] = sort(quality, 'descend');
+% matches = matches_all(:, b(1 : 10));
+% matches_all(:, 500 : end) = [];
+
 toc();
 
 %normalize points
@@ -54,19 +57,20 @@ tic
 
 
 % second filter pass
-if re_clean==1
-    %if the first pass had very few matches (add more back)
-    if size(matches_i_all,2)< 1000
-        num_needed=1000-size(matches_i_all,2);        
-        if size(matches,2)>num_needed
-            ind=randsample(size(matches,2), num_needed);
-            matches_i_all=cat(2, matches_i_all, matches(:,ind));
-        else
-            matches_i_all=cat(2, matches_i_all, matches);
-        end;
-    end;
-    [ matches_i_all] = filter_matches_tune(f1, f2, matches_i_all, matches_all, thres_spatial, 0.7);
-end;
+
+% if re_clean==1
+%     %if the first pass had very few matches (add more back)
+%     if size(matches_i_all,2)< 1000
+%         num_needed=1000-size(matches_i_all,2);        
+%         if size(matches,2)>num_needed
+%             ind=randsample(size(matches,2), num_needed);
+%             matches_i_all=cat(2, matches_i_all, matches(:,ind));
+%         else
+%             matches_i_all=cat(2, matches_i_all, matches);
+%         end;
+%     end;
+%     [ matches_i_all] = filter_matches_tune(f1, f2, matches_i_all, matches_all, thres_spatial, 0.7);
+% end;
 
 toc
 

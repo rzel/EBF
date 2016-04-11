@@ -22,24 +22,29 @@ img2 = single(rgb2gray(image2));
 % if(resize == 1) : in source code, it will become 600 x 800;
 % numTiltes : ASIFT paramter, defalut is 7, but 3 is OK.
 disp('start asift');
-resize = 1;
+resize = 0;
 numTiltes = 1;
 tic();
 [f1, f2, d1, d2] = ASIFT(img1, img2, numTiltes, resize);
 toc();
 
 %% matching
-% flag_flann == 0 : BFMatcher     slow !
-% flag_flann == 1 : FlannMatcher  efficient but not expression !
-% sift_thres == 1.5 : in eccv2014 paper setting
 disp('start matching');
 tic();
 [matches_all, quality] = cv_match(d1, d2);
-%matches = matches_all(:, a > 1.5);
-[a, b] = sort(quality, 'descend');
-matches = matches_all(:, b(1 : 10));
-matches_all(:, 500 : end) = [];
+
+matches = matches_all(:, quality > 1.5);
+
+%[a, b] = sort(quality, 'descend');
+%matches = matches_all(:, b(1 : 50));
+%matches_all(:, 500 : end) = [];
 toc();
+
+%normalize points
+f1(1, :) = f1(1, :) / size(img1, 2);
+f1(2, :) = f1(2, :) / size(img1, 1);
+f2(1, :) = f2(1, :) / size(img2, 2);
+f2(2, :) = f2(2, :) / size(img2, 1);
 
 
 disp('Begin our bilteral function fitting');
@@ -67,6 +72,12 @@ tic
 toc
 
 disp(strcat('number of matches:',  num2str(size(matches_i_all,2))));
+
+f1(1, :) = f1(1, :) * size(img1, 2);
+f1(2, :) = f1(2, :) * size(img1, 1);
+f2(1, :) = f2(1, :) * size(img2, 2);
+f2(2, :) = f2(2, :) * size(img2, 1);
+
 
 if display
     display_match_trad_enum(uint8(image1), uint8(image2), matches_i_all, f1(1:2,:),f2(1:2,:));
