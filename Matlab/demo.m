@@ -23,7 +23,7 @@ img2 = single(rgb2gray(image2));
 % numTiltes : ASIFT paramter, defalut is 7, but 3 is OK.
 disp('start asift');
 resize = 0;
-numTiltes = 1;
+numTiltes = 7;
 tic();
 [f1, f2, d1, d2] = ASIFT(img1, img2, numTiltes, resize);
 toc();

@@ -3,7 +3,7 @@ function [inliers]=affine_inliers(f1, f2, Vec, wx, wy, ax0, ay0, thres_spatial)
 
 P=cat(1, f1(1:2,:), (f2(1:2,:)- f1(1:2,:)));
 
-[G]=G_compute_fast(P, Vec', 1);
+[G]=G_compute_fast(P', Vec, 1);
 
 
 Ax=G*wx;

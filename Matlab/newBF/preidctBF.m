@@ -9,7 +9,7 @@ ly = X_test(:, 4);
 X_test(:, 3 : 4) = X_test(:, 3 : 4) - X_test(:, 1 : 2);
 
 
-G = G_compute_fast(X_test',X_train',1);
+G = G_compute_fast(X_test,X_train,1);
 G_1 = cat(2, G, ones(size(X_test, 1), 1));
 G1 = bsxfun(@times, G_1, X_test(:, 1));
 G2 = bsxfun(@times, G_1, X_test(:, 2));

@@ -17,7 +17,7 @@ public:
 		m_x = lbfgs_malloc(m);
 		threshold = thres;
 		for (int i = 0;i < m; i++) { m_x[i] = threshold; }
-		G = computerG(X_train);
+		G = computerG_fast(X_train);
 		lambda = 1.0;
 	}
 	~likehood_function() {

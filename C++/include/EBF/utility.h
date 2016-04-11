@@ -1,31 +1,42 @@
 #pragma once
 #include<Header.h>
 
-inline Mat computerG(Mat &X) {
-	Mat G(X.rows, X.rows, CV_64FC1);
-	for (int y = 0; y < G.rows; y++)
+inline Mat computerG_fast(Mat &X) {
+	int m = X.rows;
+	Mat one = Mat::ones(m, 1, CV_64FC1);
+	Mat sumX(m, 1, CV_64FC1);
+
+	for (int i = 0; i < m; i++)
 	{
-		for (int x = y; x < G.cols; x++)
-		{
-			double l2 = norm(X.row(y) - X.row(x), NORM_L2);
-			G.at<double>(y, x) = exp(-pow(l2, 2));
-			G.at<double>(x, y) = exp(-pow(l2, 2));
-		}
+		sumX.at<double>(i, 0) = pow(norm(X.row(i), NORM_L2), 2);
 	}
+
+	Mat G = -2 * X * X.t() + sumX * one.t() + one * sumX.t();
+	exp(-G, G);
+
 	return G;
 }
 
-inline Mat computerG(Mat &X, Mat &Y) {
-	Mat G(X.rows, Y.rows, CV_64FC1);
-	for (int y = 0; y < G.rows; y++)
+inline Mat computerG_fast(Mat &X,  Mat &Y) {
+	int m = X.rows, n = Y.rows;
+
+	// sumX
+	Mat sumX(m, 1, CV_64FC1);
+	for (int i = 0; i < m; i++)
 	{
-		for (int x = y; x < G.cols; x++)
-		{
-			double l2 = norm(X.row(y) - Y.row(x), NORM_L2);
-			G.at<double>(y, x) = exp(-pow(l2, 2));
-			G.at<double>(x, y) = exp(-pow(l2, 2));
-		}
+		sumX.at<double>(i, 0) = pow(norm(X.row(i), NORM_L2), 2);
 	}
+	// sumY
+	Mat sumY(n, 1, CV_64FC1);
+	for (int i = 0; i < n; i++)
+	{
+		sumY.at<double>(i, 0) = pow(norm(Y.row(i), NORM_L2), 2);
+	}
+
+	Mat G = -2 * X * Y.t() + sumX * Mat::ones(1, n, CV_64FC1) + 
+		Mat::ones(m, 1, CV_64FC1) * sumY.t();
+	exp(-G, G);
+
 	return G;
 }
 

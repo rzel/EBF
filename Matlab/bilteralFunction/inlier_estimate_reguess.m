@@ -9,7 +9,7 @@ f2=T_b*f2;
 V1=cat(2, f1(1:2,:)', flow_mag*(f2(1:2,:)- f1(1:2,:))',Ay2x);
 
 
-[G]=G_compute_fast(V1', V2', 1);
+[G]=G_compute_fast(V1, V2, 1);
 
 G(G<thres)=0;
 
