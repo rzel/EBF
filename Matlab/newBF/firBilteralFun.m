@@ -11,7 +11,7 @@ options.Method = 'lbfgs'; % Here, we use L-BFGS to optimize our cost
 %options.maxIter = 1000;	  % Maximum number of iterations of L-BFGS to run 
 options.display = 'off';
 options.numDiff = false;
-lambda = 50;
+lambda = 20;
 
 %% for check
 % numgrad = computeNumericalGradient(@(w)BilteralFunCost(w, G_big, G(:, 1 : m), l, lambda, thres), w);

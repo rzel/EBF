@@ -3,10 +3,11 @@ function [ cost, grad ] = likehoodCost( w, G, lambda, thres )
 %   Detailed explanation goes here
 
 z = 1 - G * w;
-cost = huber_cost(z, thres) + lambda * w' * G * w;
+cost = p_huber_cost(z, thres) + lambda * w' * G * w;
+cost = cost / length(w);
 
-grad = huber_grad(z, thres) * (-G) + lambda * 2 * w' * G;
-grad = grad';
+grad = p_huber_grad(z, thres) * (-G) + lambda * 2 * w' * G;
+grad = grad'/ length(w);
 
 end
 
@@ -28,5 +29,15 @@ function grad = huber_grad(x, thres)
     grad(p2) = 2 * thres;
     p3 = -x > thres;
     grad(p3) = -2 * thres;
+end
+
+function error = p_huber_cost(x, thres)
+   e = thres^2 * (sqrt(1 + (x / thres).^2) - 1);
+   error = sum(e);
+end
+
+function grad = p_huber_grad(x, thres)
+   grad = x ./ sqrt(1 + (x / thres).^2);
+   grad = grad';
 end
 

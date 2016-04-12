@@ -19,7 +19,7 @@ void filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vector<do
 
 
 	//construct X_all  X_query
-	int num_query = 50;
+	int num_query = 100;
 	Map<MatrixXf, 0, OuterStride<4> >  kp1(F1.kpts, 2, F1.num_keys);
 	Map<MatrixXf, 0, OuterStride<4> >  kp2(F2.kpts, 2, F2.num_keys);
 

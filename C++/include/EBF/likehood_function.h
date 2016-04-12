@@ -18,7 +18,7 @@ public:
 		threshold = thres;
 		for (int i = 0;i < m; i++) { m_x[i] = threshold; }
 		G = computerG(X_train);
-		lambda = 1.0;
+		lambda = 1;
 	}
 	~likehood_function() {
 		if (m_x != nullptr) {
@@ -32,7 +32,7 @@ public:
 
 		lbfgs_parameter_t param;
 		lbfgs_parameter_init(&param);
-		param.max_iterations = 100;
+//		param.max_iterations = 1000;
 
 		//lbfgs
 		int ret = lbfgs(m, m_x, &fx, _evaluate, nullptr, this, &param);
@@ -72,18 +72,17 @@ protected:
 	{
 		// prepare
 		MatrixXd w(m, 1);	memcpy((double *)w.data(), x, sizeof(double) * m);
-		MatrixXd huber_grad(1, m);
-
+		
 		// cost function
 		lbfgsfloatval_t cost;
 		MatrixXd z = 1 - (G * w).array();
 		MatrixXd regular = lambda * w.transpose() * G * w;
-		double huber_error = huber_function::getCost((double *)z.data(), m, threshold);
-		cost = huber_error + regular(0, 0);
+		double huber_error = p_huber_function::cost(z, threshold);
+		cost = (huber_error + regular(0, 0)) / m;
 		
 		// Grad
-		huber_function::getGrad(z.data(), (double *)huber_grad.data(), m, threshold);
-		MatrixXd grad = huber_grad * (-G) + 2 * lambda * w.transpose() * G;
+		MatrixXd huber_grad = p_huber_function::grad(z, threshold);
+		MatrixXd grad = (huber_grad * (-G) + 2 * lambda * w.transpose() * G) / m;
 		memcpy((double *)g, (double *)grad.data(), sizeof(double) * m);
 
 		return cost;

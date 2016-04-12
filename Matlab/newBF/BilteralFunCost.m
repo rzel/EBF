@@ -6,13 +6,14 @@ W = reshape(w, m + 1, 3);
 W(m+1, :) = [];
 
 z = l - G_big * w;
-cost = huber_cost(z, thres) + sum(diag(lambda * W' * G * W));
+cost = p_huber_cost(z, thres) + sum(diag(lambda * W' * G * W));
+cost = cost / length(w);
 
 
-grad = huber_grad(z, thres) * (-G_big);
+grad = p_huber_grad(z, thres) * (-G_big);
 Wg = cat(2, lambda * 2 * W' * G, zeros(3, 1));
 grad = grad' + reshape(Wg', length(w), 1);
-
+grad = grad / length(w);
 
 
 end
@@ -34,4 +35,14 @@ function grad = huber_grad(x, thres)
     grad(p2) = 2 * thres;
     p3 = -x > thres;
     grad(p3) = -2 * thres;
+end
+
+function error = p_huber_cost(x, thres)
+   e = thres^2 * (sqrt(1 + (x / thres).^2) - 1);
+   error = sum(e);
+end
+
+function grad = p_huber_grad(x, thres)
+   grad = x ./ sqrt(1 + (x / thres).^2);
+   grad = grad';
 end
