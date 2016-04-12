@@ -7,17 +7,17 @@ class likehood_function
 {
 protected:
 	lbfgsfloatval_t *m_x;
-	Mat G;
+	MatrixXd G;
 	int m;
 	double lambda, threshold;
 public:
-	likehood_function(Mat &X_train, double thres) : m_x(nullptr) 
+	likehood_function(MatrixXd &X_train, double thres) : m_x(nullptr) 
 	{	
-		m = X_train.rows; 
+		m = X_train.rows(); 
 		m_x = lbfgs_malloc(m);
 		threshold = thres;
 		for (int i = 0;i < m; i++) { m_x[i] = threshold; }
-		G = computerG_fast(X_train);
+		G = computerG(X_train);
 		lambda = 1.0;
 	}
 	~likehood_function() {
@@ -32,7 +32,7 @@ public:
 
 		lbfgs_parameter_t param;
 		lbfgs_parameter_init(&param);
-//		param.max_iterations = 1000;
+		param.max_iterations = 100;
 
 		//lbfgs
 		int ret = lbfgs(m, m_x, &fx, _evaluate, nullptr, this, &param);
@@ -71,21 +71,20 @@ protected:
 		)
 	{
 		// prepare
-		Mat w(m, 1, CV_64FC1, (double *)x);
-		Mat huber_grad(1, m, CV_64FC1);
+		MatrixXd w(m, 1);	memcpy((double *)w.data(), x, sizeof(double) * m);
+		MatrixXd huber_grad(1, m);
 
 		// cost function
 		lbfgsfloatval_t cost;
-		Mat z = 1 - G * w;
-		Mat regular = lambda * w.t() * G * w;
-		double huber_error = huber_function::getCost((double*)z.data, m, threshold);
-		cost = huber_error + regular.at<double>(0, 0);
+		MatrixXd z = 1 - (G * w).array();
+		MatrixXd regular = lambda * w.transpose() * G * w;
+		double huber_error = huber_function::getCost((double *)z.data(), m, threshold);
+		cost = huber_error + regular(0, 0);
 		
 		// Grad
-		huber_function::getGrad((double *)z.data, (double *)huber_grad.data, m, threshold);
-		Mat grad = huber_grad * (-G) + 2 * lambda * w.t() * G;
-		memcpy((double *)g, (double *)grad.data, sizeof(double) * m);
-
+		huber_function::getGrad(z.data(), (double *)huber_grad.data(), m, threshold);
+		MatrixXd grad = huber_grad * (-G) + 2 * lambda * w.transpose() * G;
+		memcpy((double *)g, (double *)grad.data(), sizeof(double) * m);
 
 		return cost;
 	}

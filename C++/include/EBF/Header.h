@@ -5,7 +5,9 @@
 #include<libMATCH.h>
 #include<lbfgs.h>
 #include<algorithm>
+#include <Eigen/Dense>
 
+using namespace Eigen;
 using namespace cv;
 using namespace std;
 

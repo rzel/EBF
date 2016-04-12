@@ -1,8 +1,6 @@
 #include<Header.h>
 
 
-
-
 int main() {
 	// read image
 	Mat gray1 = imread("E:/Git/EBF/data/image047.jpg", 0);
@@ -27,8 +25,8 @@ int main() {
 	vector<double> quality;
 	cv_match(F1, F2, matches_all, quality);
 
-	// get inlier
 
+	// get inlier
 	cout << " Begin EBF : " << endl;
 	clock_t bg = clock();
 	filter_matches(F1, F2, matches_all, quality);
