@@ -52,10 +52,12 @@ public:
 		w1.resize(N, 1);
 		memcpy(w1.data(), m_x, sizeof(double) * N);
 
-//		printf("L-BFGS optimization terminated with status code = %d\n", ret1);
-//		printf("  fx = %f, x[0] = %f, x[1] = %f\n", fx, m_x[0], m_x[1]);
-
-
+		if (ret1!=0)
+		{
+			printf("learning step 1 terminated with status code = %d\n", ret1);
+			printf("  fx = %f, x[0] = %f, x[1] = %f\n", fx, m_x[0], m_x[1]);
+		}
+	
 		// learning step 2
 		// initialize m_x
 		for (int i = 0; i < N; i++) { m_x[i] = threshold; }
@@ -65,9 +67,11 @@ public:
 		w2.resize(N, 1);
 		memcpy(w2.data(), m_x, sizeof(double) * N);
 
-//		printf("L-BFGS optimization terminated with status code = %d\n", ret2);
-//		printf("  fx = %f, x[0] = %f, x[1] = %f\n", fx, m_x[0], m_x[1]);
-
+		if (ret2 != 0)
+		{
+			printf("learning step 2 terminated with status code = %d\n", ret2);
+			printf("  fx = %f, x[0] = %f, x[1] = %f\n", fx, m_x[0], m_x[1]);
+		}
 		if (ret1 != 0 || ret2 != 0)	{ return false; }
 		return true;
 	}
