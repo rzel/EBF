@@ -14,8 +14,12 @@
 #include <float.h>
 
 
+
 #define MAX(i,j) ( (i)<(j) ? (j):(i) )
 #define MIN(i,j) ( (i)<(j) ? (i):(j) )
+
+
+
 
 #define LUTMAX 30
 #define LUTPRECISION 1000.0

@@ -1,23 +1,23 @@
 #pragma once
 #include <Header.h>
-#include <huber_function.h>
-#include <utility.h>
+#include<lbfgs.h>
 
 class likehood_function
 {
 protected:
 	lbfgsfloatval_t *m_x;
-	MatrixXd G;
 	int m;
 	double lambda, threshold;
 public:
+	MatrixXd G;
+public:
 	likehood_function(MatrixXd &X_train, double thres) : m_x(nullptr) 
 	{	
-		m = X_train.rows(); 
+		m = (int)X_train.cols();
 		m_x = lbfgs_malloc(m);
 		threshold = thres;
 		for (int i = 0;i < m; i++) { m_x[i] = threshold; }
-		G = computerG(X_train);
+		G = Tools::getGSM(X_train);
 		lambda = 1;
 	}
 	~likehood_function() {
@@ -27,7 +27,7 @@ public:
 		}
 	}
 
-	bool optimize(vector<double> &w) {
+	bool optimize(MatrixXd &w) {
 		double fx;
 
 		lbfgs_parameter_t param;
@@ -36,13 +36,12 @@ public:
 
 		//lbfgs
 		int ret = lbfgs(m, m_x, &fx, _evaluate, nullptr, this, &param);
-
-		w.resize(m);
+		w.resize(m, 1);
 		memcpy(w.data(), m_x, sizeof(double) * m);
 
 		/* Report the result. */
-		printf("L-BFGS optimization terminated with status code = %d\n", ret);
-		printf("  fx = %f, x[0] = %f, x[1] = %f\n", fx, m_x[0], m_x[1]);
+//		printf("L-BFGS optimization terminated with status code = %d\n", ret);
+//		printf("  fx = %f, x[0] = %f, x[1] = %f\n", fx, m_x[0], m_x[1]);
 
 		if (ret == 0)
 		{
@@ -77,11 +76,11 @@ protected:
 		lbfgsfloatval_t cost;
 		MatrixXd z = 1 - (G * w).array();
 		MatrixXd regular = lambda * w.transpose() * G * w;
-		double huber_error = p_huber_function::cost(z, threshold);
+		double huber_error = Tools::p_huber_cost(z, threshold);
 		cost = (huber_error + regular(0, 0)) / m;
 		
 		// Grad
-		MatrixXd huber_grad = p_huber_function::grad(z, threshold);
+		MatrixXd huber_grad = Tools::p_huber_grad(z, threshold);
 		MatrixXd grad = (huber_grad * (-G) + 2 * lambda * w.transpose() * G) / m;
 		memcpy((double *)g, (double *)grad.data(), sizeof(double) * m);
 

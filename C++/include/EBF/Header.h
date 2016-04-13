@@ -1,13 +1,11 @@
 #pragma once
 
 #include <opencv2/opencv.hpp>
-#include<libASIFT.h>
-#include<libMATCH.h>
-#include<lbfgs.h>
 #include<algorithm>
-#include <Eigen/Dense>
+#include "frame.h"
+#include "Tools.h"
 
-using namespace Eigen;
+
 using namespace cv;
 using namespace std;
 

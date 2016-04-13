@@ -7,13 +7,14 @@ W(m+1, :) = [];
 
 z = l - G_big * w;
 cost = p_huber_cost(z, thres) + sum(diag(lambda * W' * G * W));
-cost = cost / length(w);
+cost = cost / m;
 
 
 grad = p_huber_grad(z, thres) * (-G_big);
-Wg = cat(2, lambda * 2 * W' * G, zeros(3, 1));
-grad = grad' + reshape(Wg', length(w), 1);
-grad = grad / length(w);
+%Wg = cat(2, lambda * 2 * W' * G, zeros(3, 1));
+Wg = cat(1, lambda * 2 * G * W, zeros(1, 3)); 
+grad = grad' + reshape(Wg, length(w), 1);
+grad = grad / m;
 
 
 end

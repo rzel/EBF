@@ -22,7 +22,7 @@ is_64bit = strcmp(computer,'MACI64') || strcmp(computer,'GLNXA64') || strcmp(com
 % Notice: if your system is 64bit, your OpenCV must be 64bit!
 out_dir='../mex';
 CPPFLAGS = ' -O -DNDEBUG -IC:/SDK/OpenCV/include/ ';  % your OpenCV "include" path
-LDFLAGS = ' -LC:/SDK/OpenCV/x64/vc14/lib/ ';	% your OpenCV "lib" path
+LDFLAGS = ' -LC:/SDK/OpenCV/x64/vc12/lib/ ';	% your OpenCV "lib" path
 LIBS = ' ';
 if is_64bit
 	CPPFLAGS = [CPPFLAGS ' -largeArrayDims'];

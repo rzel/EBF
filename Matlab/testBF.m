@@ -34,7 +34,7 @@ tic();
 [matches_all, quality] = cv_match(d1, d2);
 
 %matches = matches_all(:, quality > 1.5);
-num = size(matches_all, 2) / 100;
+num = max(size(matches_all, 2) / 100, 20);
 [a, b] = sort(quality, 'descend');
 matches = matches_all(:, b(1 : uint16(num)));
 %matches_all(:, 500 : end) = [];
