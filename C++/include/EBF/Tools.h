@@ -1,35 +1,36 @@
 #pragma once
 
-#include "get_gsm_sse2_.h"
+// float  : 1
+// double : 2
+#define FLT 1
+//#define __AVX__
+#define __SSE2__
+#include "get_gsm_fast.h"
 
 
-#include <Eigen/Dense>
+#include <Eigen/Core>
 using namespace Eigen;
-
-
-
 
 
 class Tools{
 
 public:
 	// compute Gaussian similar matrix
-	static MatrixXf get_GSM_sse2(MatrixXf &X, MatrixXf &Y = MatrixXf()) {
+	static MatrixXf get_GSM_fast(MatrixXf &X, MatrixXf &Y = MatrixXf()) {
 		const size_t M1 = X.cols();
 		const size_t M2 = Y.cols();
 		const size_t N = X.rows();
 
-		MatrixXf D;
+		MatrixXf G;
 		if (M2 == 0)
 		{
-			D.resize(M1, M1);
-			get_gsm_sse2_d(D.data(), N, X.data(), M1, NULL, 0);
+			G.resize(M1, M1);
+			get_gsm_fast(G.data(), N, X.data(), M1, NULL, 0);
 		}
 		else {
-			D.resize(M1, M2);
-			get_gsm_sse2_d(D.data(), N, X.data(), M1, Y.data(), M2);
+			G.resize(M1, M2);
+			get_gsm_fast(G.data(), N, X.data(), M1, Y.data(), M2);
 		}
-		MatrixXf G = (-D).array().exp();
 		return G;
 	}
 
@@ -58,7 +59,6 @@ public:
 			return	(X - mu * MatrixXf::Ones(1, m)).array() / (sigma * MatrixXf::Ones(1, m)).array();
 		}
 	}
-
 	static MatrixXd featureNormalize(MatrixXd &X, MatrixXd &mu, MatrixXd &sigma, bool row = true) {
 		if (row == true) {
 			int m = (int)X.rows();
@@ -117,3 +117,7 @@ public:
 		}
 	}
 };
+
+
+#undef __AVX__
+#undef __SSE2__

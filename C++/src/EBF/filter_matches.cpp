@@ -23,13 +23,12 @@ void filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vector<do
 
 
 	// matching_all  matching  :  two points per column
-	int num_query = max((int)(matches_all.size() / 100), 100);
+	int num_query = max((int)(matches_all.size() / 100), 30);
 	Map<MatrixXf, 0, OuterStride<4> >  kp1(F1.kpts, 2, F1.num_keys);
 	Map<MatrixXf, 0, OuterStride<4> >  kp2(F2.kpts, 2, F2.num_keys);
 
 	MatrixXf  matching_all(4, matches_all.size());
-
-#pragma omp parallel 
+	
 	for (int i = 0; i < matches_all.size(); i++)
 	{
 		int l = matches_all[i].queryIdx;

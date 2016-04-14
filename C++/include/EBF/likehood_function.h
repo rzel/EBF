@@ -17,7 +17,7 @@ public:
 		m_x = lbfgs_malloc(m);
 		threshold = thres;
 		for (int i = 0;i < m; i++) { m_x[i] = threshold; }
-		G = Tools::get_GSM_sse2(X_train).cast<double>();
+		G = Tools::get_GSM_fast(X_train).cast<double>();
 		lambda = 1;
 	}
 	~likehood_function() {

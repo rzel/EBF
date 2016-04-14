@@ -22,7 +22,7 @@ public:
 		lambda = 1;
 
 		// construct G and G_big	
-		G = Tools::get_GSM_sse2(X_train).cast<double>();
+		G = Tools::get_GSM_fast(X_train).cast<double>();
 		big_G.resize(m, N);
 		big_G.block(0, 0, m, m) = G.array() * (Lx * MatrixXd::Ones(1, m)).array();
 		big_G.block(0, m, m, m) = G.array() * (Ly * MatrixXd::Ones(1, m)).array();
