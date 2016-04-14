@@ -23,11 +23,13 @@ void filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vector<do
 
 
 	// matching_all  matching  :  two points per column
-	int num_query = max((int)(matches_all.size() / 100), 30);
+	int num_query = max((int)(matches_all.size() / 100), 100);
 	Map<MatrixXf, 0, OuterStride<4> >  kp1(F1.kpts, 2, F1.num_keys);
 	Map<MatrixXf, 0, OuterStride<4> >  kp2(F2.kpts, 2, F2.num_keys);
 
-	MatrixXd  matching_all(4, matches_all.size());
+	MatrixXf  matching_all(4, matches_all.size());
+
+#pragma omp parallel 
 	for (int i = 0; i < matches_all.size(); i++)
 	{
 		int l = matches_all[i].queryIdx;
@@ -35,47 +37,50 @@ void filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vector<do
 		matching_all.col(i) << kp1(0, l), kp1(1, l), kp2(0, r), kp2(1, r);
 	}
 	// normalize the points to 0 - 1
-	MatrixXd ImageSize(4, 1);	ImageSize << (double)F1.w, (double)F1.h, (double)F2.w, (double)F2.h;
-	matching_all = matching_all.array() / (ImageSize * MatrixXd::Ones(1, matches_all.size())).array();
+	MatrixXf ImageSize(4, 1);	ImageSize << (float)F1.w, (float)F1.h, (float)F2.w, (float)F2.h;
+	matching_all = matching_all.array() / (ImageSize * MatrixXf::Ones(1, matches_all.size())).array();
 
-	MatrixXd matching_query(4, num_query);
+	MatrixXf matching_query(4, num_query);
 	for (int i = 0; i < num_query; i++)
 	{
 		matching_query.col(i) = matching_all.col(PriorityIdx[i].second);
 	}
 
 	// normalize X_query
-	MatrixXd  X_query, mu, sigma;
+	MatrixXf  X_query, mu, sigma;
 	X_query = Tools::featureNormalize(matching_query, mu, sigma, false);
 	X_query.bottomRows(2) -= X_query.topRows(2);
-//	X_query.row(2) -= X_query.row(0);	X_query.row(3) -= X_query.row(1);
 
 	// normalize X_all	
-	MatrixXd X_all = Tools::featureNormalize(matching_all, mu, sigma, false);
+	MatrixXf X_all = Tools::featureNormalize(matching_all, mu, sigma, false);
 	X_all.bottomRows(2) -= X_all.topRows(2);
 
+
+	clock_t bg = clock();
 	// learning likehood weight
 	MatrixXd w;
 	likehood_function lhf(X_query, LIKEHOOD_THRESH);
 	if (!lhf.optimize(w)) {
 		cout << "likehood function error !" << endl;
 	}
-
 	// get inlier by likehood  must first to likehood_all, because likehood will change X_query.
 	getInlier::likehood_all(w, X_all, X_query, matching_all, LIKEHOOD_THRESH);
 	getInlier::likehood(w, lhf.G,X_query, matching_query, LIKEHOOD_THRESH);
+	clock_t ed = clock();
+	cout << "likehood time : " << ed - bg << "ms         " << matching_all.cols() << endl;
 
+
+	bg = clock();
 	// learning bilateral function weight
 	bilateral_function blf(X_query, matching_query, BILATERAL_THRESH);
 	MatrixXd w1, w2;
 	if (!blf.optimize(w1, w2)) {
 		cout << "bilateral function error !" << endl;
 	}
-
 	// get inlier by bilateral function
 	getInlier::bilateral_function(w1, w2, X_all, X_query, matching_all, BILATERAL_THRESH);
-
-	cout << matching_all.cols() << endl;
+	ed = clock();
+	cout << "bilteral function  time : " << ed - bg << "ms         " << matching_all.cols() << endl;
 }
 
 

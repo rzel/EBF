@@ -11,13 +11,13 @@ protected:
 public:
 	MatrixXd G;
 public:
-	likehood_function(MatrixXd &X_train, double thres) : m_x(nullptr) 
+	likehood_function(MatrixXf &X_train, double thres) : m_x(nullptr)
 	{	
 		m = (int)X_train.cols();
 		m_x = lbfgs_malloc(m);
 		threshold = thres;
 		for (int i = 0;i < m; i++) { m_x[i] = threshold; }
-		G = Tools::getGSM(X_train);
+		G = Tools::get_GSM_sse2(X_train).cast<double>();
 		lambda = 1;
 	}
 	~likehood_function() {

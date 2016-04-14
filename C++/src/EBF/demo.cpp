@@ -14,7 +14,7 @@ int main() {
 	gray2.convertTo(gf2, CV_32FC1);
 
 	// construct FRAME
-	int numTilts = 1, flag_resize = 0;
+	int numTilts = 7, flag_resize = 0;
 	FRAME F1 = { (float*)gf1.data, gf1.cols, gf1.rows, numTilts , flag_resize, 0, nullptr, nullptr };
 	FRAME F2 = { (float*)gf2.data, gf2.cols, gf2.rows, numTilts , flag_resize, 0, nullptr, nullptr };
 		

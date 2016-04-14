@@ -1,50 +1,66 @@
 #pragma once
+
+#include "get_gsm_sse2_.h"
+
+
 #include <Eigen/Dense>
 using namespace Eigen;
+
+
+
 
 
 class Tools{
 
 public:
 	// compute Gaussian similar matrix
-	static MatrixXd getGSM(MatrixXd &X) {
-		const int M = (int)X.cols();
+	static MatrixXf get_GSM_sse2(MatrixXf &X, MatrixXf &Y = MatrixXf()) {
+		const size_t M1 = X.cols();
+		const size_t M2 = Y.cols();
+		const size_t N = X.rows();
 
-		// Compute norms
-		MatrixXd XX = X.colwise().squaredNorm();
-
-		// Compute final expression
-		MatrixXd D = MatrixXd::Ones(M, 1) * XX + XX.transpose() * MatrixXd::Ones(1, M) - 2 * X.transpose() * X;
-		
-		MatrixXd G = (-D).array().exp();
-
+		MatrixXf D;
+		if (M2 == 0)
+		{
+			D.resize(M1, M1);
+			get_gsm_sse2_d(D.data(), N, X.data(), M1, NULL, 0);
+		}
+		else {
+			D.resize(M1, M2);
+			get_gsm_sse2_d(D.data(), N, X.data(), M1, Y.data(), M2);
+		}
+		MatrixXf G = (-D).array().exp();
 		return G;
 	}
-	// compute Gaussian similar matrix
-	static MatrixXd getGSM(MatrixXd &X, MatrixXd &Y) {
-		const int M = (int)X.cols();
-		const int N = (int)Y.cols();
 
-		// Allocate parts of the expression
-		MatrixXd XX, YY, XY, D;
-
-		// Compute norms
-		XX = X.colwise().squaredNorm();
-		YY = Y.colwise().squaredNorm();
-		XY = 2 * X.transpose() * Y;
-
-		// Compute final expression
-		D = XX.transpose() * MatrixXd::Ones(1, N) + MatrixXd::Ones(M, 1) * YY - XY;
-		MatrixXd G = (-D).array().exp();
-
-		return G;
-	}
 
 
 	// Eigen for featureNormalize	row by default
 	//
-	static MatrixXd featureNormalize(MatrixXd &X, MatrixXd &mu, MatrixXd &sigma, bool row = true){
+	static MatrixXf featureNormalize(MatrixXf &X, MatrixXf &mu, MatrixXf &sigma, bool row = true){
 		if (row == true){
+			int m = (int)X.rows();
+			if (mu.rows() == 0 && sigma.rows() == 0)
+			{
+				mu = X.array().colwise().mean();
+				sigma = ((X - MatrixXf::Ones(m, 1) * mu).colwise().squaredNorm().array() / float(m)).sqrt();
+			}
+			return (X - MatrixXf::Ones(m, 1) * mu).array() / (MatrixXf::Ones(m, 1) * sigma).array();
+		}
+		else
+		{
+			int m = (int)X.cols();
+			if (mu.rows() == 0 && sigma.rows() == 0)
+			{
+				mu = X.array().rowwise().mean();			
+				sigma = ((X - mu * MatrixXf::Ones(1, m)).rowwise().squaredNorm().array() / m).sqrt();
+			}
+			return	(X - mu * MatrixXf::Ones(1, m)).array() / (sigma * MatrixXf::Ones(1, m)).array();
+		}
+	}
+
+	static MatrixXd featureNormalize(MatrixXd &X, MatrixXd &mu, MatrixXd &sigma, bool row = true) {
+		if (row == true) {
 			int m = (int)X.rows();
 			if (mu.rows() == 0 && sigma.rows() == 0)
 			{
@@ -58,7 +74,7 @@ public:
 			int m = (int)X.cols();
 			if (mu.rows() == 0 && sigma.rows() == 0)
 			{
-				mu = X.array().rowwise().mean();			
+				mu = X.array().rowwise().mean();
 				sigma = ((X - mu * MatrixXd::Ones(1, m)).rowwise().squaredNorm().array() / m).sqrt();
 			}
 			return	(X - mu * MatrixXd::Ones(1, m)).array() / (sigma * MatrixXd::Ones(1, m)).array();

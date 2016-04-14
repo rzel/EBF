@@ -3,11 +3,11 @@
 
 class getInlier{
 public:
-	static void likehood(MatrixXd &w, MatrixXd &G, MatrixXd &X_query, MatrixXd &matching, double inlier_threshold){
+	static void likehood(MatrixXd &w, MatrixXd &G, MatrixXf &X_query, MatrixXf &matching, double inlier_threshold){
 		MatrixXi inlier_idx = ((1 - (G * w).array()).abs() < inlier_threshold).cast<int>();
 		int num_inlier = inlier_idx.array().sum();
 	
-		MatrixXd temp_X_query(4, num_inlier), temp_matching(4, num_inlier);
+		MatrixXf temp_X_query(4, num_inlier), temp_matching(4, num_inlier);
 
 		int cur = 0;
 		// filter X_query and matching
@@ -22,14 +22,12 @@ public:
 		matching = temp_matching;
 	}
 
-	static void likehood_all(MatrixXd &w, MatrixXd &X_all, MatrixXd &X_query, MatrixXd &matching_all, double inlier_threshold){
-		MatrixXd G = Tools::getGSM(X_all, X_query);
+	static void likehood_all(MatrixXd &w, MatrixXf &X_all, MatrixXf &X_query, MatrixXf &matching_all, double inlier_threshold){
+		MatrixXd G = Tools::get_GSM_sse2(X_all, X_query).cast<double>();
 		MatrixXi inlier_idx = ((1 - (G * w).array()).abs() < inlier_threshold).cast<int>();
 		int num_inlier = inlier_idx.array().sum();
-
-		MatrixXd temp_X_all(4, num_inlier), temp_matching(4, num_inlier);
-
-		
+		MatrixXf temp_X_all(4, num_inlier), temp_matching(4, num_inlier);
+	
 		// filter X_query and matching
 		int cur = 0;
 		for (int i = 0; i < inlier_idx.size(); i++){
@@ -45,17 +43,17 @@ public:
 	}
 
 
-	static void bilateral_function(MatrixXd &w1, MatrixXd&w2, MatrixXd &X_all, MatrixXd &X_query, MatrixXd &matching_all, double bilateral_threshold){
+	static void bilateral_function(MatrixXd &w1, MatrixXd&w2, MatrixXf &X_all, MatrixXf &X_query, MatrixXf &matching_all, double bilateral_threshold){
 		int m = (int)X_all.cols();
 		int n = (int)X_query.cols();
 		int N = 3 * n + 3;
 	
-		MatrixXd Lx = matching_all.row(2).transpose();
-		MatrixXd Ly = matching_all.row(3).transpose();
+		MatrixXd Lx = matching_all.row(2).transpose().cast<double>();
+		MatrixXd Ly = matching_all.row(3).transpose().cast<double>();
 		MatrixXd big_G, G;
 
 		// construct G and G_big	
-		G = Tools::getGSM(X_all, X_query);
+		G = Tools::get_GSM_sse2(X_all, X_query).cast<double>();
 		big_G.resize(m, N);
 		big_G.block(0, 0, m, n) = G.array() * (Lx * MatrixXd::Ones(1, n)).array();
 		big_G.block(0, n, m, n) = G.array() * (Ly * MatrixXd::Ones(1, n)).array();
@@ -67,7 +65,7 @@ public:
 
 		MatrixXi inlier_idx = ((ex.array().square() + ey.array().square()) < bilateral_threshold).cast<int>();
 		int num_inlier = inlier_idx.array().sum();
-		MatrixXd  temp_matching(4, num_inlier);
+		MatrixXf  temp_matching(4, num_inlier);
 
 		// filter X_query and matching
 		int cur = 0;

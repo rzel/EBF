@@ -2,6 +2,7 @@
 
 #include <opencv2/opencv.hpp>
 #include<algorithm>
+#include<ctime>
 #include "frame.h"
 #include "Tools.h"
 

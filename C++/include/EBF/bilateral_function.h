@@ -11,18 +11,18 @@ protected:
 public:
 	MatrixXd G, big_G, Label, Lx, Ly;
 public:
-	bilateral_function(MatrixXd &X_train, MatrixXd &matching, double thres) : m_x(nullptr)
+	bilateral_function(MatrixXf &X_train, MatrixXf &matching, double thres) : m_x(nullptr)
 	{
 		m = (int)X_train.cols();
 		N = 3 * m + 3;
 		m_x = lbfgs_malloc(N);
 		threshold = thres;	
-		Lx = matching.row(2).transpose();
-		Ly = matching.row(3).transpose();
+		Lx = matching.row(2).transpose().cast<double>();
+		Ly = matching.row(3).transpose().cast<double>();
 		lambda = 1;
 
 		// construct G and G_big	
-		G = Tools::getGSM(X_train);
+		G = Tools::get_GSM_sse2(X_train).cast<double>();
 		big_G.resize(m, N);
 		big_G.block(0, 0, m, m) = G.array() * (Lx * MatrixXd::Ones(1, m)).array();
 		big_G.block(0, m, m, m) = G.array() * (Ly * MatrixXd::Ones(1, m)).array();
