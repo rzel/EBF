@@ -4,14 +4,14 @@
 #include <bilateral_function.h>
 #include <getInlier.h>
 
-#define LIKEHOOD_THRESH		0.2
-#define BILATERAL_THRESH	0.01
+#define LIKEHOOD_THRESH		0.3
+#define BILATERAL_THRESH	0.04
 
 bool CampareRule(const pair<double, int>&p1, const pair<double, int>&p2) {
 	return p1.first < p2.first;
 }
 
-void filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vector<double> &quality)
+MatrixXf filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vector<double> &quality)
 {
 	// pair<priority, index> : priority = 1.0 / quality 
 	vector<pair<double, int>> PriorityIdx(matches_all.size());
@@ -80,6 +80,30 @@ void filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vector<do
 	getInlier::bilateral_function(w1, w2, X_all, X_query, matching_all, BILATERAL_THRESH);
 	ed = clock();
 	cout << "bilteral function  time : " << ed - bg << "ms         " << matching_all.cols() << endl;
+
+	return matching_all;
 }
 
 
+void draw_matches(Mat &img1, Mat &img2, MatrixXf &matching) {
+	size_t num_matching = matching.cols();
+
+	vector<KeyPoint> kp1(num_matching), kp2(num_matching);
+	vector<DMatch> matches(num_matching);
+
+	int w1 = img1.cols, h1 = img1.rows, w2 = img2.cols, h2 = img2.rows;
+
+	for (size_t i = 0; i < num_matching; i++)
+	{
+		kp1[i].pt = Point2f(matching(0, i) * w1, matching(1, i) * h1);
+		kp2[i].pt = Point2f(matching(2, i) * w2, matching(3, i) * h2);
+		matches[i].queryIdx = i;
+		matches[i].trainIdx = i;
+	}
+
+	Mat output;
+	drawMatches(img1, kp1, img2, kp2, matches, output);
+
+	imshow("results", output);
+	waitKey();
+}

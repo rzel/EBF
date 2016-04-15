@@ -29,8 +29,8 @@
 #ifndef __LBFGS_H__
 #define __LBFGS_H__
 
-#define USE_SSE  
-#define __SSE2__  
+//#define USE_SSE  
+//#define __SSE2__  
 #define LBFGS_FLOAT  64
 
 

@@ -14,7 +14,7 @@ int main() {
 	gray2.convertTo(gf2, CV_32FC1);
 
 	// construct FRAME
-	int numTilts = 7, flag_resize = 0;
+	int numTilts = 3, flag_resize = 0;
 	FRAME F1 = { (float*)gf1.data, gf1.cols, gf1.rows, numTilts , flag_resize, 0, nullptr, nullptr };
 	FRAME F2 = { (float*)gf2.data, gf2.cols, gf2.rows, numTilts , flag_resize, 0, nullptr, nullptr };
 		
@@ -30,11 +30,11 @@ int main() {
 
 	// get inlier
 	clock_t bg = clock();
-	filter_matches(F1, F2, matches_all, quality);
+	MatrixXf matching = filter_matches(F1, F2, matches_all, quality);
 	clock_t ed = clock();
 	cout << "BF time : " << ed - bg << "ms" << endl;
 
-	
+	draw_matches(gray1, gray2, matching);
 
 
 	return 0;
