@@ -27,27 +27,25 @@ public:
 		}
 	}
 
-	bool optimize(MatrixXd &w) {
+	void optimize(MatrixXd &w) {
 		double fx;
 
 		lbfgs_parameter_t param;
 		lbfgs_parameter_init(&param);
-//		param.max_iterations = 1000;
+//		param.max_iterations = 100;
 
+		
 		//lbfgs
 		int ret = lbfgs(m, m_x, &fx, _evaluate, nullptr, this, &param);
 		w.resize(m, 1);
 		memcpy(w.data(), m_x, sizeof(double) * m);
 
-		/* Report the result. */
-//		printf("L-BFGS optimization terminated with status code = %d\n", ret);
-//		printf("  fx = %f, x[0] = %f, x[1] = %f\n", fx, m_x[0], m_x[1]);
-
-		if (ret == 0)
+		if (ret != 0)
 		{
-			return true;
+			printf("L-BFGS optimization terminated with status code = %d\n", ret);
+			printf("  fx = %f, x[0] = %f, x[1] = %f\n", fx, m_x[0], m_x[1]);
 		}
-		return false;
+
 	}
 
 protected:

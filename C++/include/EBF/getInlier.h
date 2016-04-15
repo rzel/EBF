@@ -6,7 +6,7 @@ public:
 	static void likehood(MatrixXd &w, MatrixXd &G, MatrixXf &X_query, MatrixXf &matching, double inlier_threshold){
 		MatrixXi inlier_idx = ((1 - (G * w).array()).abs() < inlier_threshold).cast<int>();
 		int num_inlier = inlier_idx.array().sum();
-	
+
 		MatrixXf temp_X_query(4, num_inlier), temp_matching(4, num_inlier);
 
 		int cur = 0;
