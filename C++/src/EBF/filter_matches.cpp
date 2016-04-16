@@ -6,7 +6,7 @@
 
 #define LIKEHOOD_THRESH		0.3
 #define BILATERAL_THRESH	0.01
-#define MINIMUM_QUERY_NUM	50
+#define MINIMUM_QUERY_NUM	30
 
 
 bool CampareRule(const pair<double, int>&p1, const pair<double, int>&p2) {
@@ -57,16 +57,16 @@ MatrixXf filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vecto
 	X_all.bottomRows(2) -= X_all.topRows(2);
 
 
-	clock_t bg = clock();
+	
 	// learning likehood weight
 	MatrixXd w;
 	likehood_function lhf(X_query, LIKEHOOD_THRESH);
 	lhf.optimize(w);
+	clock_t bg = clock();
 	// get inlier by likehood  must first to likehood_all, because likehood will change X_query.
-	clock_t ed = clock();
 	getInlier::likehood_all(w, X_all, X_query, matching_all, LIKEHOOD_THRESH);
 	getInlier::likehood(w, lhf.G,X_query, matching_query, LIKEHOOD_THRESH);
-
+	clock_t ed = clock();
 	cout << "likehood time : " << ed - bg << "ms         " << matching_all.cols() << endl;
 
 
@@ -86,9 +86,9 @@ MatrixXf filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vecto
 
 void draw_matches(Mat &img1, Mat &img2, MatrixXf &matching) {
 	
-	resize(img1, img1, img1.size() / 2);
-	resize(img2, img2, img2.size() / 2);
-	matching = matching.array() / 2;
+	//resize(img1, img1, img1.size() / 2);
+	//resize(img2, img2, img2.size() / 2);
+	//matching = matching.array() / 2;
 	
 	size_t num_matching = matching.cols();
 

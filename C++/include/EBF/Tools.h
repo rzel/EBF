@@ -1,13 +1,6 @@
 #pragma once
-
-// float  : 1
-// double : 2
-#define FLT 1
-//#define __AVX__
-#define __SSE2__
-#include "get_gsm_fast.h"
-
-
+#include "math_sse2.h"
+//#include "math_avx.h"
 #include <Eigen/Core>
 using namespace Eigen;
 
@@ -19,25 +12,25 @@ public:
 	static MatrixXf get_GSM_fast(MatrixXf &X, MatrixXf &Y = MatrixXf()) {
 		const size_t M1 = X.cols();
 		const size_t M2 = Y.cols();
-		const size_t N = X.rows();
+		const size_t N  = X.rows();
 
 		MatrixXf G;
 		if (M2 == 0)
 		{
 			G.resize(M1, M1);
-			get_gsm_fast(G.data(), N, X.data(), M1, NULL, 0);
+			dist_l2_matrix_sse2_f(G.data(), N, X.data(), M1, NULL, 0);
 		}
 		else {
 			G.resize(M1, M2);
-			get_gsm_fast(G.data(), N, X.data(), M1, Y.data(), M2);
+			dist_l2_matrix_sse2_f(G.data(), N, X.data(), M1, Y.data(), M2);
 		}
+		G = (-G).array().exp();
 		return G;
 	}
 
 
 
-	// Eigen for featureNormalize	row by default
-	//
+	// Eigen for featureNormalize  row by default
 	static MatrixXf featureNormalize(MatrixXf &X, MatrixXf &mu, MatrixXf &sigma, bool row = true){
 		if (row == true){
 			int m = (int)X.rows();
@@ -85,7 +78,7 @@ public:
 
 	// pseudo huber cost
 	static double p_huber_cost(MatrixXd &x, double threshold) {
-		return pow(threshold, 2) * (((x.array() / threshold).square() + 1).sqrt() - 1).sum();
+		return threshold * threshold * (((x.array() / threshold).square() + 1).sqrt() - 1).sum();
 	}
 	// pseudo huber grad
 	static MatrixXd p_huber_grad(MatrixXd &x, double threshold) {
@@ -117,7 +110,3 @@ public:
 		}
 	}
 };
-
-
-#undef __AVX__
-#undef __SSE2__
