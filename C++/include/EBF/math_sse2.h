@@ -76,7 +76,7 @@ inline float dot_see2_f(size_t dimension, float const*X, float const*Y) {
 			Y += VSIZE_SSE2_F;
 		}
 	}
-
+	
 	acc = vshsum_sse2_f(vacc);
 	
 	while (X < X_end)

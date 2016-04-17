@@ -32,7 +32,7 @@ public:
 
 		lbfgs_parameter_t param;
 		lbfgs_parameter_init(&param);
-//		param.max_iterations = 100;
+//		param.max_iterations = 1000;
 
 		
 		//lbfgs
@@ -70,16 +70,17 @@ protected:
 		// prepare
 		MatrixXd w(m, 1);	memcpy((double *)w.data(), x, sizeof(double) * m);
 		
+		MatrixXd h = G * w;
 		// cost function
 		lbfgsfloatval_t cost;
-		MatrixXd z = 1 - (G * w).array();
-		MatrixXd regular = lambda * w.transpose() * G * w;
-		double huber_error = Tools::p_huber_cost(z, threshold);
-		cost = (huber_error + regular(0, 0)) / m;
+		MatrixXd z = 1 - h.array();
+		double regular_cost = lambda * (w.transpose() * h).array().sum();
+		double huber_cost = Tools::p_huber_cost(z, threshold);
+		cost = (huber_cost + regular_cost) / m;
 		
 		// Grad
 		MatrixXd huber_grad = Tools::p_huber_grad(z, threshold);
-		MatrixXd grad = (huber_grad * (-G) + 2 * lambda * w.transpose() * G) / m;
+		MatrixXd grad = (2 * lambda * h.transpose() + huber_grad * (-G)) / m;
 		memcpy((double *)g, (double *)grad.data(), sizeof(double) * m);
 
 		return cost;

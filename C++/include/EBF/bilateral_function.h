@@ -99,10 +99,11 @@ protected:
 		MatrixXd w(N, 1);	memcpy((double *)w.data(), (double *)x, sizeof(double) * N);
 		MatrixXd W(m, 3);   memcpy((double *)W.data(), (double *)x, sizeof(double) * 3 * m);
 
+		MatrixXd H = G * W;
 		// cost function
 		lbfgsfloatval_t cost = 0;
 		MatrixXd z = Label - big_G * w;
-		double regular_error = (lambda * W.transpose() * G * W).diagonal().sum();
+		double regular_error = (lambda * W.transpose() * H).diagonal().sum();
 		double huber_error = Tools::p_huber_cost(z, threshold);
 		cost = (huber_error + regular_error) / m;
 		
@@ -110,7 +111,7 @@ protected:
 		// grad
 		MatrixXd grad = Tools::p_huber_grad(z, threshold) * (-big_G);
 		MatrixXd reguar_grad = MatrixXd::Zero(1, N);		
-		MatrixXd reguarWg = 2 * lambda * G * W;
+		MatrixXd reguarWg = 2 * lambda * H;
 		memcpy(reguar_grad.data(), reguarWg.data(), 3 * m * sizeof(double));
 		grad += reguar_grad;
 		grad /= m;

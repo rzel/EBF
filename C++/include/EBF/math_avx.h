@@ -204,3 +204,90 @@ inline void dist_l2_matrix_avx_d
 		}
 	}
 }
+
+
+inline double phuber_cost_avx_d(size_t dimension, double const *X, double threshold) {
+	double const * X_end = X + dimension;
+	double const * X_vec_end = X_end - VSIZE_AVX_D + 1;
+	double acc;
+	VTYPE_AVX_D vacc = _mm256_setzero_pd();
+	VTYPE_AVX_D vthres = _mm256_set_pd(threshold, threshold, threshold, threshold);
+	VTYPE_AVX_D vones = _mm256_set_pd(1.0, 1.0, 1.0, 1.0);
+	int dataAligned = VALIGNEDavx(X);
+
+	if (dataAligned)
+	{
+		while (X < X_vec_end)
+		{
+			VTYPE_AVX_D vx = *(VTYPE_AVX_D*)X;
+			VTYPE_AVX_D vd = _mm256_div_pd(vx, vthres);					
+			vacc = _mm256_add_pd(vacc, _mm256_sqrt_pd(_mm256_add_pd(_mm256_mul_pd(vd, vd), vones)));
+			X += VSIZE_AVX_D;
+		}
+	}
+	else
+	{
+		while (X < X_vec_end)
+		{
+			VTYPE_AVX_D vx = _mm256_loadu_pd(X);
+			VTYPE_AVX_D vd = _mm256_div_pd(vx, vthres);
+			vacc = _mm256_add_pd(vacc, _mm256_sqrt_pd(_mm256_add_pd(_mm256_mul_pd(vd, vd), vones)));
+			X += VSIZE_AVX_D;
+		}
+	}
+
+	acc = vshsum_avx_d(vacc);
+
+	while (X < X_end)
+	{
+		double d = ((*X++) / threshold) ;
+		acc += sqrt(d * d + 1);
+	}
+
+	return (acc - dimension) * threshold * threshold;
+}
+
+
+
+inline void phuber_grad_avx_d(size_t dimension, double const *X, double *g, double threshold) {
+	double const * X_end = X + dimension;
+	double const * X_vec_end = X_end - VSIZE_AVX_D + 1;
+
+	VTYPE_AVX_D vthres = _mm256_set_pd(threshold, threshold, threshold, threshold);
+	VTYPE_AVX_D vones = _mm256_set_pd(1.0, 1.0, 1.0, 1.0);
+	VTYPE_AVX_D vg;
+	int dataAligned = VALIGNEDavx(X) & VALIGNEDavx(g);
+
+	if (dataAligned)
+	{
+		while (X < X_vec_end)
+		{
+			VTYPE_AVX_D vx = *(VTYPE_AVX_D*)X;
+			VTYPE_AVX_D vd = _mm256_div_pd(vx, vthres);
+			vg = _mm256_div_pd(vx, _mm256_sqrt_pd(_mm256_add_pd(_mm256_mul_pd(vd, vd), vones)));
+			_mm256_store_pd(g, vg);
+			g += VSIZE_AVX_D;
+			X += VSIZE_AVX_D;
+		}
+	}
+	else
+	{
+		while (X < X_vec_end)
+		{
+			VTYPE_AVX_D vx = _mm256_loadu_pd(X);
+			VTYPE_AVX_D vd = _mm256_div_pd(vx, vthres);
+			vg = _mm256_div_pd(vx, _mm256_sqrt_pd(_mm256_add_pd(_mm256_mul_pd(vd, vd), vones)));
+			_mm256_storeu_pd(g, vg);
+			g += VSIZE_AVX_D;
+			X += VSIZE_AVX_D;
+		}
+	}
+	while (X < X_end)
+	{
+		double d = (*X / threshold);
+		(*g++) = *X / sqrt(d * d + 1);
+		X++;
+	}
+}
+
+

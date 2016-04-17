@@ -8,9 +8,10 @@ int main() {
 	Mat gray1 = imread("E:/Git/EBF/data/image047.jpg", 0);
 	Mat gray2 = imread("E:/Git/EBF/data/image048.jpg", 0);
 
-//	Mat gray1 = imread("E:/kitti/dataset/sequences/00/image_0/000010.png", 0);
-//	Mat gray2 = imread("E:/kitti/dataset/sequences/00/image_0/000020.png", 0);
-
+	//Mat gray1 = imread("E:/kitti/dataset/sequences/00/image_0/000020.png", 0);
+	//Mat gray2 = imread("E:/kitti/dataset/sequences/00/image_0/000030.png", 0);
+	//resize(gray1, gray1, gray1.size() / 2);
+	//resize(gray2, gray2, gray2.size() / 2);
 
 	// convert to float type
 	Mat gf1, gf2;
@@ -18,7 +19,7 @@ int main() {
 	gray2.convertTo(gf2, CV_32FC1);
 
 	// construct FRAME
-	int numTilts = 7, flag_resize = 0;
+	int numTilts = 3, flag_resize = 0;
 	FRAME F1 = { (float*)gf1.data, gf1.cols, gf1.rows, numTilts , flag_resize, 0, nullptr, nullptr };
 	FRAME F2 = { (float*)gf2.data, gf2.cols, gf2.rows, numTilts , flag_resize, 0, nullptr, nullptr };
 
@@ -28,13 +29,13 @@ int main() {
 
 	// cv_match
 	vector<DMatch> matches_all;
-	vector<double> quality;
-	cv_match(F1, F2, matches_all, quality);
+	vector<double> priority;
+	cv_match(F1, F2, matches_all, priority);
 
 
 	// get inlier
 	clock_t bg = clock();
-	MatrixXf matching = filter_matches(F1, F2, matches_all, quality);
+	MatrixXf matching = filter_matches(F1, F2, matches_all, priority);
 	clock_t ed = clock();
 	cout << "BF time : " << ed - bg << "ms" << endl;
 

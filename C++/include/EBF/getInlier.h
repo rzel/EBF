@@ -13,33 +13,38 @@ public:
 		// filter X_query and matching
 		for (int i = 0; i < inlier_idx.size(); i++){
 			if (inlier_idx(i, 0) == 0)	continue;
-			temp_X_query.col(cur) = X_query.col(i);
-			temp_matching.col(cur) = matching.col(i);
+			memcpy(temp_X_query.data() + 4 * cur, X_query.data() + 4 * i, 4 * sizeof(float));
+			memcpy(temp_matching.data() + 4 * cur, matching.data() + 4 * i, 4 * sizeof(float));
 			cur++;
 		}
 		assert(num_inlier == cur);
 		X_query = temp_X_query;
 		matching = temp_matching;
+//		X_query = X_query.leftCols(num_inlier);
+//		matching = matching.leftCols(num_inlier);
 	}
 
 	static void likehood_all(MatrixXd &w, MatrixXf &X_all, MatrixXf &X_query, MatrixXf &matching_all, double inlier_threshold){
 		MatrixXd G = Tools::get_GSM_fast(X_all, X_query).cast<double>();
 		MatrixXi inlier_idx = ((1 - (G * w).array()).abs() < inlier_threshold).cast<int>();
 		int num_inlier = inlier_idx.array().sum();
+	
 		MatrixXf temp_X_all(4, num_inlier), temp_matching(4, num_inlier);
 	
 		// filter X_query and matching
 		int cur = 0;
 		for (int i = 0; i < inlier_idx.size(); i++){
-			if (inlier_idx(i, 0) ==0 )	continue;
-			temp_X_all.col(cur) = X_all.col(i);
-			temp_matching.col(cur) = matching_all.col(i);
+			if (inlier_idx(i, 0) == 0 )	continue;
+			memcpy(temp_X_all.data() + 4 * cur, X_all.data() + 4 * i, 4 * sizeof(float));
+			memcpy(temp_matching.data() + 4 * cur, matching_all.data() + 4 * i, 4 * sizeof(float));
 			cur++;
 		}
 		assert(num_inlier == cur);
 
 		X_all = temp_X_all;
 		matching_all = temp_matching;
+//		X_all = X_all.leftCols(num_inlier);
+//		matching_all = matching_all.leftCols(num_inlier);
 	}
 
 
@@ -65,17 +70,17 @@ public:
 
 		MatrixXi inlier_idx = ((ex.array().square() + ey.array().square()) < bilateral_threshold).cast<int>();
 		int num_inlier = inlier_idx.array().sum();
-		MatrixXf  temp_matching(4, num_inlier);
+//		MatrixXf  temp_matching(4, num_inlier);
 
 		// filter X_query and matching
 		int cur = 0;
 		for (int i = 0; i < inlier_idx.size(); i++){
 			if (inlier_idx(i, 0) == 0)	continue;
-			temp_matching.col(cur) = matching_all.col(i);
+			memcpy(matching_all.data() + 4 * cur, matching_all.data() + 4 * i, 4 * sizeof(float));
 			cur++;
 		}
 		assert(num_inlier == cur);
-		matching_all = temp_matching;
+		matching_all = matching_all.leftCols(num_inlier);
 	}
 
 
