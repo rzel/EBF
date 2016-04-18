@@ -56,7 +56,7 @@ MatrixXf filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vecto
 
 	clock_t bg = clock();
 	// learning likehood weight
-	MatrixXd w;
+	MatrixXf w;
 	likehood_function lhf(X_query, HUBER_THRESH);
 	lhf.optimize(w);
 	clock_t ed = clock();
@@ -73,7 +73,7 @@ MatrixXf filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vecto
 	bg = clock();
 	// learning bilateral function weight
 	bilateral_function blf(X_query, matching_query, BILATERAL_THRESH);
-	MatrixXd w1, w2;
+	MatrixXf w1, w2;
 	blf.optimize(w1, w2);
 	ed = clock();
 	cout << "bf lerning  time : " << ed - bg << "ms         " << endl;

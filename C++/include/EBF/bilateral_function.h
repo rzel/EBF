@@ -9,7 +9,7 @@ protected:
 	int N, m;
 	double lambda, threshold;
 public:
-	MatrixXd G, big_G, Label, Lx, Ly;
+	MatrixXf G, big_G, Label, Lx, Ly;
 public:
 	bilateral_function(MatrixXf &X_train, MatrixXf &matching, double thres) : m_x(nullptr)
 	{
@@ -17,17 +17,17 @@ public:
 		N = 3 * m + 3;
 		m_x = lbfgs_malloc(N);
 		threshold = thres;	
-		Lx = matching.row(2).transpose().cast<double>();
-		Ly = matching.row(3).transpose().cast<double>();
+		Lx = matching.row(2).transpose();
+		Ly = matching.row(3).transpose();
 		lambda = 1;
 
 		// construct G and G_big	
-		G = Tools::get_GSM_fast(X_train).cast<double>();
+		G = Tools::get_GSM_fast(X_train);
 		big_G.resize(m, N);
-		big_G.block(0, 0, m, m) = G.array() * (Lx * MatrixXd::Ones(1, m)).array();
-		big_G.block(0, m, m, m) = G.array() * (Ly * MatrixXd::Ones(1, m)).array();
+		big_G.block(0, 0, m, m) = G.array() * (Lx * MatrixXf::Ones(1, m)).array();
+		big_G.block(0, m, m, m) = G.array() * (Ly * MatrixXf::Ones(1, m)).array();
 		big_G.block(0, 2 * m, m, m) = G;
-		big_G.block(0, 3 * m, m, 3) = MatrixXd::Ones(m, 3);
+		big_G.block(0, 3 * m, m, 3) = MatrixXf::Ones(m, 3);
 	}
 	~bilateral_function() {
 		if (m_x != nullptr) {
@@ -36,8 +36,8 @@ public:
 		}
 	}
 
-	bool optimize(MatrixXd &w1, MatrixXd &w2) {
-		double fx;
+	bool optimize(MatrixXf &w1, MatrixXf &w2) {
+		lbfgsfloatval_t fx;
 
 		lbfgs_parameter_t param;
 		lbfgs_parameter_init(&param);
@@ -50,9 +50,9 @@ public:
 		Label = Lx;
 		int ret1 = lbfgs(N, m_x, &fx, _evaluate, nullptr, this, &param);
 		w1.resize(N, 1);
-		memcpy(w1.data(), m_x, sizeof(double) * N);
+		for (int i = 0; i < N; i++) { w1(i) = m_x[i]; }
 
-		if (ret1!=0)
+		if (ret1 != 0 && ret1 != -1001)
 		{
 			printf("learning step 1 terminated with status code = %d\n", ret1);
 			printf("  fx = %f, x[0] = %f, x[1] = %f\n", fx, m_x[0], m_x[1]);
@@ -65,9 +65,9 @@ public:
 		Label = Ly;
 		int ret2 = lbfgs(N, m_x, &fx, _evaluate, nullptr, this, &param);
 		w2.resize(N, 1);
-		memcpy(w2.data(), m_x, sizeof(double) * N);
+		for (int i = 0; i < N; i++) { w2(i) = m_x[i]; }
 
-		if (ret2 != 0)
+		if (ret2 != 0 && ret2 != -1001)
 		{
 			printf("learning step 2 terminated with status code = %d\n", ret2);
 			printf("  fx = %f, x[0] = %f, x[1] = %f\n", fx, m_x[0], m_x[1]);
@@ -96,26 +96,28 @@ protected:
 		)
 	{
 		// prepare
-		MatrixXd w(N, 1);	memcpy((double *)w.data(), (double *)x, sizeof(double) * N);
-		MatrixXd W(m, 3);   memcpy((double *)W.data(), (double *)x, sizeof(double) * 3 * m);
+		MatrixXf w(N, 1);	for (size_t i = 0; i < N; i++) { w(i) = x[i]; }
+		MatrixXf W(m, 3);   float *Wdata = W.data();
+		for (size_t i = 0; i < 3 * m; i++) { *Wdata++ = x[i]; }
 
-		MatrixXd H = G * W;
+
+		MatrixXf H = G * W;
 		// cost function
 		lbfgsfloatval_t cost = 0;
-		MatrixXd z = Label - big_G * w;
+		MatrixXf z = Label - big_G * w;
 		double regular_error = (lambda * W.transpose() * H).diagonal().sum();
 		double huber_error = Tools::p_huber_cost(z, threshold);
 		cost = (huber_error + regular_error) / m;
 		
 
 		// grad
-		MatrixXd grad = Tools::p_huber_grad(z, threshold) * (-big_G);
-		MatrixXd reguar_grad = MatrixXd::Zero(1, N);		
-		MatrixXd reguarWg = 2 * lambda * H;
-		memcpy(reguar_grad.data(), reguarWg.data(), 3 * m * sizeof(double));
+		MatrixXf grad = Tools::p_huber_grad(z, threshold) * (-big_G);
+		MatrixXf reguar_grad = MatrixXf::Zero(1, N);		
+		MatrixXf reguarWg = 2 * lambda * H;
+		memcpy(reguar_grad.data(), reguarWg.data(), 3 * m * sizeof(float));
 		grad += reguar_grad;
 		grad /= m;
-		memcpy((double *)g, (double *)grad.data(), sizeof(double) * N);
+		for (size_t i = 0; i < N; i++) { g[i] = grad(i); }
 
 		return cost;
 	}

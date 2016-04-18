@@ -9,7 +9,7 @@ protected:
 	int m;
 	double lambda, threshold;
 public:
-	MatrixXd G;
+	MatrixXf G;
 public:
 	likehood_function(MatrixXf &X_train, double thres) : m_x(nullptr)
 	{	
@@ -17,7 +17,7 @@ public:
 		m_x = lbfgs_malloc(m);
 		threshold = thres;
 		for (int i = 0;i < m; i++) { m_x[i] = threshold; }
-		G = Tools::get_GSM_fast(X_train).cast<double>();
+		G = Tools::get_GSM_fast(X_train);
 		lambda = 1;
 	}
 	~likehood_function() {
@@ -27,20 +27,19 @@ public:
 		}
 	}
 
-	void optimize(MatrixXd &w) {
-		double fx;
+	void optimize(MatrixXf &w) {
+		lbfgsfloatval_t fx;
 
 		lbfgs_parameter_t param;
 		lbfgs_parameter_init(&param);
-//		param.max_iterations = 1000;
-
+//		param.xtol = 1.0e-7;
 		
 		//lbfgs
 		int ret = lbfgs(m, m_x, &fx, _evaluate, nullptr, this, &param);
 		w.resize(m, 1);
-		memcpy(w.data(), m_x, sizeof(double) * m);
+		for (size_t i = 0; i < m; i++) { w(i) = m_x[i]; }
 
-		if (ret != 0)
+		if (ret != 0 && ret != -1001)
 		{
 			printf("L-BFGS optimization terminated with status code = %d\n", ret);
 			printf("  fx = %f, x[0] = %f, x[1] = %f\n", fx, m_x[0], m_x[1]);
@@ -68,20 +67,20 @@ protected:
 		)
 	{
 		// prepare
-		MatrixXd w(m, 1);	memcpy((double *)w.data(), x, sizeof(double) * m);
+		MatrixXf w(m, 1);	for (size_t i = 0; i < m; i++) { w(i) = x[i]; }
 		
-		MatrixXd h = G * w;
+		MatrixXf h = G * w;
 		// cost function
 		lbfgsfloatval_t cost;
-		MatrixXd z = 1 - h.array();
+		MatrixXf e = 1 - h.array();
 		double regular_cost = lambda * (w.transpose() * h).array().sum();
-		double huber_cost = Tools::p_huber_cost(z, threshold);
+		double huber_cost = Tools::p_huber_cost(e, threshold);
 		cost = (huber_cost + regular_cost) / m;
 		
 		// Grad
-		MatrixXd huber_grad = Tools::p_huber_grad(z, threshold);
-		MatrixXd grad = (2 * lambda * h.transpose() + huber_grad * (-G)) / m;
-		memcpy((double *)g, (double *)grad.data(), sizeof(double) * m);
+		MatrixXf huber_grad = Tools::p_huber_grad(e, threshold);
+		MatrixXf grad = (2 * lambda * h.transpose() + huber_grad * (-G)) / m;
+		for (size_t i = 0; i < m; i++) { g[i] = grad(i); }
 
 		return cost;
 	}

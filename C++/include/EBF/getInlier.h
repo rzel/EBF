@@ -3,7 +3,7 @@
 
 class getInlier{
 public:
-	static void likehood(MatrixXd &w, MatrixXd &G, MatrixXf &X_query, MatrixXf &matching, double inlier_threshold){
+	static void likehood(MatrixXf &w, MatrixXf &G, MatrixXf &X_query, MatrixXf &matching, double inlier_threshold){
 		MatrixXi inlier_idx = ((1 - (G * w).array()).abs() < inlier_threshold).cast<int>();
 		int num_inlier = inlier_idx.array().sum();
 
@@ -24,8 +24,8 @@ public:
 //		matching = matching.leftCols(num_inlier);
 	}
 
-	static void likehood_all(MatrixXd &w, MatrixXf &X_all, MatrixXf &X_query, MatrixXf &matching_all, double inlier_threshold){
-		MatrixXd G = Tools::get_GSM_fast(X_all, X_query).cast<double>();
+	static void likehood_all(MatrixXf &w, MatrixXf &X_all, MatrixXf &X_query, MatrixXf &matching_all, double inlier_threshold){
+		MatrixXf G = Tools::get_GSM_fast(X_all, X_query);
 		MatrixXi inlier_idx = ((1 - (G * w).array()).abs() < inlier_threshold).cast<int>();
 		int num_inlier = inlier_idx.array().sum();
 	
@@ -48,25 +48,25 @@ public:
 	}
 
 
-	static void bilateral_function(MatrixXd &w1, MatrixXd&w2, MatrixXf &X_all, MatrixXf &X_query, MatrixXf &matching_all, double bilateral_threshold){
+	static void bilateral_function(MatrixXf &w1, MatrixXf&w2, MatrixXf &X_all, MatrixXf &X_query, MatrixXf &matching_all, double bilateral_threshold){
 		int m = (int)X_all.cols();
 		int n = (int)X_query.cols();
 		int N = 3 * n + 3;
 	
-		MatrixXd Lx = matching_all.row(2).transpose().cast<double>();
-		MatrixXd Ly = matching_all.row(3).transpose().cast<double>();
-		MatrixXd big_G, G;
+		MatrixXf Lx = matching_all.row(2).transpose();
+		MatrixXf Ly = matching_all.row(3).transpose();
+		MatrixXf big_G, G;
 
 		// construct G and G_big	
-		G = Tools::get_GSM_fast(X_all, X_query).cast<double>();
+		G = Tools::get_GSM_fast(X_all, X_query);
 		big_G.resize(m, N);
-		big_G.block(0, 0, m, n) = G.array() * (Lx * MatrixXd::Ones(1, n)).array();
-		big_G.block(0, n, m, n) = G.array() * (Ly * MatrixXd::Ones(1, n)).array();
+		big_G.block(0, 0, m, n) = G.array() * (Lx * MatrixXf::Ones(1, n)).array();
+		big_G.block(0, n, m, n) = G.array() * (Ly * MatrixXf::Ones(1, n)).array();
 		big_G.block(0, 2 * n, m, n) = G;
-		big_G.block(0, 3 * n, m, 3) = MatrixXd::Ones(m, 3);
+		big_G.block(0, 3 * n, m, 3) = MatrixXf::Ones(m, 3);
 
-		MatrixXd ex = Lx - big_G * w1;
-		MatrixXd ey = Ly - big_G * w2;
+		MatrixXf ex = Lx - big_G * w1;
+		MatrixXf ey = Ly - big_G * w2;
 
 		MatrixXi inlier_idx = ((ex.array().square() + ey.array().square()) < bilateral_threshold).cast<int>();
 		int num_inlier = inlier_idx.array().sum();
