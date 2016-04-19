@@ -119,6 +119,87 @@ inline double dist_l2_avx_d(size_t dimension, double const * X, double const * Y
 }
 
 
+inline float dot_avx_f(size_t dimension, float const*X, float const*Y) {
+	float const * X_end = X + dimension;
+	float const * X_vec_end = X_end - VSIZE_AVX_F + 1;
+	float acc;
+	VTYPE_AVX_F vacc = _mm256_setzero_ps();
+	bool dataAligned = VALIGNEDavx(X) & VALIGNEDavx(Y);
+
+	if (dataAligned)
+	{
+		while (X < X_vec_end)
+		{
+			VTYPE_AVX_F a = *(VTYPE_AVX_F*)X;
+			VTYPE_AVX_F b = *(VTYPE_AVX_F*)Y;
+			vacc = _mm256_add_ps(vacc, _mm256_mul_ps(a, b));
+			X += VSIZE_AVX_F;
+			Y += VSIZE_AVX_F;
+		}
+	}
+	else
+	{
+		while (X < X_vec_end)
+		{
+			VTYPE_AVX_F a = _mm256_loadu_ps(X);
+			VTYPE_AVX_F b = _mm256_loadu_ps(Y);
+			vacc = _mm256_add_ps(vacc, _mm256_mul_ps(a, b));
+			X += VSIZE_AVX_F;
+			Y += VSIZE_AVX_F;
+		}
+	}
+
+	acc = vshsum_avx_f(vacc);
+
+	while (X < X_end)
+	{
+		acc += (*X++) * (*Y++);
+	}
+
+	return acc;
+}
+
+inline double dot_avx_d(size_t dimension, double const*X, double const*Y) {
+	double const * X_end = X + dimension;
+	double const * X_vec_end = X_end - VSIZE_AVX_D + 1;
+	double acc;
+	VTYPE_AVX_D vacc = _mm256_setzero_pd();
+	bool dataAligned = VALIGNEDavx(X) & VALIGNEDavx(Y);
+
+	if (dataAligned)
+	{
+		while (X < X_vec_end)
+		{
+			VTYPE_AVX_D a = *(VTYPE_AVX_D*)X;
+			VTYPE_AVX_D b = *(VTYPE_AVX_D*)Y;
+			vacc = _mm256_add_pd(vacc, _mm256_mul_pd(a, b));
+			X += VSIZE_AVX_D;
+			Y += VSIZE_AVX_D;
+		}
+	}
+	else
+	{
+		while (X < X_vec_end)
+		{
+			VTYPE_AVX_D a = _mm256_loadu_pd(X);
+			VTYPE_AVX_D b = _mm256_loadu_pd(Y);
+			vacc = _mm256_add_pd(vacc, _mm256_mul_pd(a, b));
+			X += VSIZE_AVX_D;
+			Y += VSIZE_AVX_D;
+		}
+	}
+
+	acc = vshsum_avx_d(vacc);
+
+	while (X < X_end)
+	{
+		acc += (*X++) * (*Y++);
+	}
+
+	return acc;
+}
+
+
 
 inline void dist_l2_matrix_avx_f
 (float * result, size_t dimension,
@@ -247,7 +328,46 @@ inline double phuber_cost_avx_d(size_t dimension, double const *X, double thresh
 	return (acc - dimension) * threshold * threshold;
 }
 
+inline float phuber_cost_avx_f(size_t dimension, float const *X, float threshold) {
+	float const * X_end = X + dimension;
+	float const * X_vec_end = X_end - VSIZE_AVX_F + 1;
+	float acc;
+	VTYPE_AVX_F vacc = _mm256_setzero_ps();
+	VTYPE_AVX_F vthres = _mm256_set_ps(threshold, threshold, threshold, threshold, threshold, threshold, threshold, threshold);
+	VTYPE_AVX_F vones = _mm256_set_ps(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+	int dataAligned = VALIGNEDavx(X);
 
+	if (dataAligned)
+	{
+		while (X < X_vec_end)
+		{
+			VTYPE_AVX_F vx = *(VTYPE_AVX_F*)X;
+			VTYPE_AVX_F vd = _mm256_div_ps(vx, vthres);
+			vacc = _mm256_add_ps(vacc, _mm256_sqrt_ps(_mm256_add_ps(_mm256_mul_ps(vd, vd), vones)));
+			X += VSIZE_AVX_F;
+		}
+	}
+	else
+	{
+		while (X < X_vec_end)
+		{
+			VTYPE_AVX_F vx = _mm256_loadu_ps(X);
+			VTYPE_AVX_F vd = _mm256_div_ps(vx, vthres);
+			vacc = _mm256_add_ps(vacc, _mm256_sqrt_ps(_mm256_add_ps(_mm256_mul_ps(vd, vd), vones)));
+			X += VSIZE_AVX_F;
+		}
+	}
+
+	acc = vshsum_avx_f(vacc);
+
+	while (X < X_end)
+	{
+		double d = ((*X++) / threshold);
+		acc += sqrt(d * d + 1);
+	}
+
+	return (acc - dimension) * threshold * threshold;
+}
 
 inline void phuber_grad_avx_d(size_t dimension, double const *X, double *g, double threshold) {
 	double const * X_end = X + dimension;
@@ -290,4 +410,43 @@ inline void phuber_grad_avx_d(size_t dimension, double const *X, double *g, doub
 	}
 }
 
+inline void phuber_grad_avx_f(size_t dimension, float const *X, float *g, float threshold) {
+	float const * X_end = X + dimension;
+	float const * X_vec_end = X_end - VSIZE_AVX_F + 1;
+
+	VTYPE_AVX_F vthres = _mm256_set_ps(threshold, threshold, threshold, threshold, threshold, threshold, threshold, threshold);
+	VTYPE_AVX_F vones = _mm256_set_ps(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+	VTYPE_AVX_F vg;
+	int dataAligned = VALIGNEDavx(X) & VALIGNEDavx(g);
+
+	if (dataAligned)
+	{
+		while (X < X_vec_end)
+		{
+			VTYPE_AVX_F vx = *(VTYPE_AVX_F*)X;
+			VTYPE_AVX_F vd = _mm256_div_ps(vx, vthres);
+			vg = _mm256_div_ps(vx, _mm256_sqrt_ps(_mm256_add_ps(_mm256_mul_ps(vd, vd), vones)));
+			_mm256_store_ps(g, vg);
+			g += VSIZE_AVX_F;
+			X += VSIZE_AVX_F;
+		}
+	}
+	else
+	{
+		while (X < X_vec_end)
+		{
+			VTYPE_AVX_F vx = _mm256_loadu_ps(X);
+			VTYPE_AVX_F vd = _mm256_div_ps(vx, vthres);
+			vg = _mm256_div_ps(vx, _mm256_sqrt_ps(_mm256_add_ps(_mm256_mul_ps(vd, vd), vones)));
+			_mm256_storeu_ps(g, vg);
+			g += VSIZE_AVX_F;
+			X += VSIZE_AVX_F;
+		}
+	}
+	while (X < X_end)
+	{
+		float d = (*X / threshold);
+		(*g++) = (*X++) / sqrt(d * d + 1);
+	}
+}
 

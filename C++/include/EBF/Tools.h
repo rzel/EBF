@@ -77,32 +77,20 @@ public:
 
 
 	// pseudo huber cost
-	static double p_huber_cost(MatrixXf &x, double threshold) {
-		return threshold * threshold * (((x.array() / threshold).square() + 1).sqrt() - 1).sum();
-//		return phuber_cost_avx_d(x.rows(), x.data(), threshold);
+	static float p_huber_cost(MatrixXf &x, float threshold) {
+//		return threshold * threshold * (((x.array() / threshold).square() + 1).sqrt() - 1).sum();
+		return phuber_cost_avx_f(x.rows(), x.data(), threshold);
 	}
 	// pseudo huber grad
-	static MatrixXf p_huber_grad(MatrixXf &x, double threshold) {
-		return (x.array() / ((x.array() / threshold).square() + 1).sqrt()).transpose();
-	//size_t dimension = x.size();
-	//MatrixXd grad(1, dimension);
-	//phuber_grad_avx_d(dimension, x.data(), grad.data(), threshold);
-	//return grad;
+	static MatrixXf p_huber_grad(MatrixXf &x, float threshold) {
+//		return (x.array() / ((x.array() / threshold).square() + 1).sqrt()).transpose();
+		
+		size_t dimension = x.size();
+		MatrixXf grad(1, dimension);
+		phuber_grad_avx_f(dimension, x.data(), grad.data(), threshold);
+		return grad;
 	}
 
-	// pseudo huber cost
-	static double p_huber_cost(MatrixXd &x, double threshold) {
-		return threshold * threshold * (((x.array() / threshold).square() + 1).sqrt() - 1).sum();
-		//		return phuber_cost_avx_d(x.rows(), x.data(), threshold);
-	}
-	// pseudo huber grad
-	static MatrixXd p_huber_grad(MatrixXd &x, double threshold) {
-		return (x.array() / ((x.array() / threshold).square() + 1).sqrt()).transpose();
-		//size_t dimension = x.size();
-		//MatrixXd grad(1, dimension);
-		//phuber_grad_avx_d(dimension, x.data(), grad.data(), threshold);
-		//return grad;
-	}
 
 };
 

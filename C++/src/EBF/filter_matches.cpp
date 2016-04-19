@@ -4,11 +4,11 @@
 #include <bilateral_function.h>
 #include <getInlier.h>
 
-#define HUBER_THRESH		0.3
-#define LIKEHOOD_THRESH		0.3
+#define HUBER_THRESH		0.1
+#define LIKEHOOD_THRESH		0.1
 #define BILATERAL_THRESH	0.01
 #define SIFT_MATCH_RATIO	0.66
-
+#define MAX_QUERY_NUMBER	500
 
 MatrixXf filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vector<double> &priority)
 {
@@ -18,6 +18,10 @@ MatrixXf filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vecto
 	{
 		if (priority[i]  > SIFT_MATCH_RATIO) continue;	
 		good_matches.push_back(i);
+	}
+	if (good_matches.size() > MAX_QUERY_NUMBER)
+	{
+		good_matches.resize(MAX_QUERY_NUMBER);
 	}
 	int num_query = good_matches.size();
 

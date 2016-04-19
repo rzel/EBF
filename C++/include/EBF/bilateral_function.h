@@ -96,9 +96,8 @@ protected:
 		)
 	{
 		// prepare
-		MatrixXf w(N, 1);	for (size_t i = 0; i < N; i++) { w(i) = x[i]; }
-		MatrixXf W(m, 3);   float *Wdata = W.data();
-		for (size_t i = 0; i < 3 * m; i++) { *Wdata++ = x[i]; }
+		MatrixXf w(N, 1);	memcpy(w.data(), x, sizeof(float) * N);
+		MatrixXf W(m, 3);   memcpy(W.data(), x, sizeof(float) * 3 * m);
 
 
 		MatrixXf H = G * W;
@@ -109,15 +108,13 @@ protected:
 		double huber_error = Tools::p_huber_cost(z, threshold);
 		cost = (huber_error + regular_error) / m;
 		
-
+		
 		// grad
-		MatrixXf grad = Tools::p_huber_grad(z, threshold) * (-big_G);
 		MatrixXf reguar_grad = MatrixXf::Zero(1, N);		
 		MatrixXf reguarWg = 2 * lambda * H;
 		memcpy(reguar_grad.data(), reguarWg.data(), 3 * m * sizeof(float));
-		grad += reguar_grad;
-		grad /= m;
-		for (size_t i = 0; i < N; i++) { g[i] = grad(i); }
+		MatrixXf grad = (reguar_grad - Tools::p_huber_grad(z, threshold) * big_G) / m;
+		memcpy(g, grad.data(), sizeof(float) * N);
 
 		return cost;
 	}
