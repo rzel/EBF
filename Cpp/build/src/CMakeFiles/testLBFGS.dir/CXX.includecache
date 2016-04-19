@@ -1,0 +1,16 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../src/../include/libLBFGS/lbfgs.h
+
+/home/jiawang/EBF/EBF/Cpp/src/test/testLBFGS.cpp
+stdio.h
+-
+lbfgs.h
+-
+

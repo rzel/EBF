@@ -1,0 +1,1 @@
+/usr/bin/c++    -fopenmp -Wall -Wno-strict-aliasing -Wextra -Wno-write-strings -Wno-deprecated -ansi -O3 -ftree-vectorize -funroll-loops    CMakeFiles/testLBFGS.dir/test/testLBFGS.cpp.o  -o ../../bin/testLBFGS  -L/home/jiawang/EBF/EBF/Cpp/lib -rdynamic ../../lib/liblibLBFGS.a -Wl,-rpath,/home/jiawang/EBF/EBF/Cpp/lib 
