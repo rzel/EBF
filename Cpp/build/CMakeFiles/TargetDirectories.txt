@@ -1,5 +1,0 @@
-/home/jiawang/EBF/EBF/Cpp/build/src/CMakeFiles/EBF.dir
-/home/jiawang/EBF/EBF/Cpp/build/src/CMakeFiles/libASIFT.dir
-/home/jiawang/EBF/EBF/Cpp/build/src/CMakeFiles/libLBFGS.dir
-/home/jiawang/EBF/EBF/Cpp/build/src/CMakeFiles/libMATCH.dir
-/home/jiawang/EBF/EBF/Cpp/build/src/CMakeFiles/testLBFGS.dir
