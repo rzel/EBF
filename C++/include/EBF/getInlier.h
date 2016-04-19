@@ -24,8 +24,8 @@ public:
 //		matching = matching.leftCols(num_inlier);
 	}
 
-	static void likehood_all(MatrixXf &w, MatrixXf &X_all, MatrixXf &X_query, MatrixXf &matching_all, double inlier_threshold){
-		MatrixXf G = Tools::get_GSM_fast(X_all, X_query);
+	static void likehood_all(MatrixXf &w, MatrixXf &U, MatrixXf &X_all, MatrixXf &X_query, MatrixXf &matching_all, double inlier_threshold){
+		MatrixXf G = Tools::get_GSM_fast(X_all, X_query) * U;
 		MatrixXi inlier_idx = ((1 - (G * w).array()).abs() < inlier_threshold).cast<int>();
 		int num_inlier = inlier_idx.array().sum();
 	
@@ -48,9 +48,9 @@ public:
 	}
 
 
-	static void bilateral_function(MatrixXf &w1, MatrixXf&w2, MatrixXf &X_all, MatrixXf &X_query, MatrixXf &matching_all, double bilateral_threshold){
+	static void bilateral_function(MatrixXf &w1, MatrixXf&w2, MatrixXf &U, MatrixXf &X_all, MatrixXf &X_query, MatrixXf &matching_all, double bilateral_threshold){
 		int m = (int)X_all.cols();
-		int n = (int)X_query.cols();
+		int n = (int)U.cols();
 		int N = 3 * n + 3;
 	
 		MatrixXf Lx = matching_all.row(2).transpose();
@@ -58,7 +58,7 @@ public:
 		MatrixXf big_G, G;
 
 		// construct G and G_big	
-		G = Tools::get_GSM_fast(X_all, X_query);
+		G = Tools::get_GSM_fast(X_all, X_query) * U;
 		big_G.resize(m, N);
 		big_G.block(0, 0, m, n) = G.array() * (Lx * MatrixXf::Ones(1, n)).array();
 		big_G.block(0, n, m, n) = G.array() * (Ly * MatrixXf::Ones(1, n)).array();

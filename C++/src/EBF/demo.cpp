@@ -8,8 +8,8 @@ int main() {
 	//Mat gray1 = imread("E:/Git/EBF/data/image047.jpg", 0);
 	//Mat gray2 = imread("E:/Git/EBF/data/image048.jpg", 0);
 
-	Mat gray1 = imread("E:/Git/EBF/data/DSC00184.jpg", 0);
-	Mat gray2 = imread("E:/Git/EBF/data/DSC00186.jpg", 0);
+	Mat gray1 = imread("E:/data/DSC00184.jpg", 0);
+	Mat gray2 = imread("E:/data/DSC00186.jpg", 0);
 
 	imresize(gray1, 480);
 	imresize(gray2, 480);

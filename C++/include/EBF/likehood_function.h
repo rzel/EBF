@@ -6,19 +6,21 @@ class likehood_function
 {
 protected:
 	lbfgsfloatval_t *m_x;
-	int m;
+	int m, n;
 	double lambda, threshold;
 public:
-	MatrixXf G;
+	MatrixXf G, U;
 public:
 	likehood_function(MatrixXf &X_train, double thres) : m_x(nullptr)
 	{	
-		m = (int)X_train.cols();
-		m_x = lbfgs_malloc(m);
-		threshold = thres;
-		for (int i = 0;i < m; i++) { m_x[i] = threshold; }
+		n = 10;
 		G = Tools::get_GSM_fast(X_train);
+		G = Tools::kernel_pca(G, U, n);
 		lambda = 1;
+		m = (int)G.rows();
+		m_x = lbfgs_malloc(n);
+		threshold = thres;
+		for (int i = 0; i < n; i++) { m_x[i] = threshold; }
 	}
 	~likehood_function() {
 		if (m_x != nullptr) {
@@ -35,9 +37,9 @@ public:
 //		param.xtol = 1.0e-7;
 		
 		//lbfgs
-		int ret = lbfgs(m, m_x, &fx, _evaluate, nullptr, this, &param);
-		w.resize(m, 1);
-		for (size_t i = 0; i < m; i++) { w(i) = m_x[i]; }
+		int ret = lbfgs(n, m_x, &fx, _evaluate, nullptr, this, &param);
+		w.resize(n, 1);
+		for (size_t i = 0; i < n; i++) { w(i) = m_x[i]; }
 
 		if (ret != 0 && ret != -1001)
 		{
@@ -67,21 +69,21 @@ protected:
 		)
 	{
 		// prepare
-		MatrixXf w(m, 1);	for (size_t i = 0; i < m; i++) { w(i) = x[i]; }
+		MatrixXf w(n, 1);	for (size_t i = 0; i < n; i++) { w(i) = x[i]; }
 		
 		MatrixXf h = G * w;
 		// cost function
 		lbfgsfloatval_t cost;
 		MatrixXf e = 1 - h.array();
-		double regular_cost = lambda * (w.transpose() * h).array().sum();
+		double regular_cost = lambda * (w.transpose()*w).array().sum();
 		double huber_cost = Tools::p_huber_cost(e, threshold);
 		cost = (huber_cost + regular_cost) / m;
 		
 		// Grad
 		MatrixXf huber_grad = Tools::p_huber_grad(e, threshold);
-		MatrixXf grad = (2 * lambda * h.transpose() + huber_grad * (-G)) / m;
-		for (size_t i = 0; i < m; i++) { g[i] = grad(i); }
-
+		MatrixXf grad = (2 * lambda * w - huber_grad * G) / m;
+		memcpy(g, grad.data(), sizeof(float) * n);
+	
 		return cost;
 	}
 

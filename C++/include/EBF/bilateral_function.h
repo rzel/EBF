@@ -6,15 +6,16 @@ class bilateral_function
 {
 protected:
 	lbfgsfloatval_t *m_x;
-	int N, m;
+	int N, m, n;
 	double lambda, threshold;
 public:
-	MatrixXf G, big_G, Label, Lx, Ly;
+	MatrixXf G, big_G, Label, Lx, Ly, U;
 public:
 	bilateral_function(MatrixXf &X_train, MatrixXf &matching, double thres) : m_x(nullptr)
 	{
+		n = 20;
 		m = (int)X_train.cols();
-		N = 3 * m + 3;
+		N = 3 * n + 3;
 		m_x = lbfgs_malloc(N);
 		threshold = thres;	
 		Lx = matching.row(2).transpose();
@@ -23,11 +24,12 @@ public:
 
 		// construct G and G_big	
 		G = Tools::get_GSM_fast(X_train);
+		G = Tools::kernel_pca(G, U, n);
 		big_G.resize(m, N);
-		big_G.block(0, 0, m, m) = G.array() * (Lx * MatrixXf::Ones(1, m)).array();
-		big_G.block(0, m, m, m) = G.array() * (Ly * MatrixXf::Ones(1, m)).array();
-		big_G.block(0, 2 * m, m, m) = G;
-		big_G.block(0, 3 * m, m, 3) = MatrixXf::Ones(m, 3);
+		big_G.block(0, 0, m, n) = G.array() * (Lx * MatrixXf::Ones(1, n)).array();
+		big_G.block(0, n, m, n) = G.array() * (Ly * MatrixXf::Ones(1, n)).array();
+		big_G.block(0, 2 * n, m, n) = G;
+		big_G.block(0, 3 * n, m, 3) = MatrixXf::Ones(m, 3);
 	}
 	~bilateral_function() {
 		if (m_x != nullptr) {
@@ -97,25 +99,17 @@ protected:
 	{
 		// prepare
 		MatrixXf w(N, 1);	memcpy(w.data(), x, sizeof(float) * N);
-		MatrixXf W(m, 3);   memcpy(W.data(), x, sizeof(float) * 3 * m);
-
-
-		MatrixXf H = G * W;
+		
 		// cost function
 		lbfgsfloatval_t cost = 0;
-		MatrixXf z = Label - big_G * w;
-		double regular_error = (lambda * W.transpose() * H).diagonal().sum();
-		double huber_error = Tools::p_huber_cost(z, threshold);
+		MatrixXf e = Label - big_G * w;
+		double regular_error = (lambda * w.transpose() * w).sum();
+		double huber_error = Tools::p_huber_cost(e, threshold);
 		cost = (huber_error + regular_error) / m;
 		
-		
 		// grad
-		MatrixXf reguar_grad = MatrixXf::Zero(1, N);		
-		MatrixXf reguarWg = 2 * lambda * H;
-		memcpy(reguar_grad.data(), reguarWg.data(), 3 * m * sizeof(float));
-		MatrixXf grad = (reguar_grad - Tools::p_huber_grad(z, threshold) * big_G) / m;
+		MatrixXf grad = (2 * lambda * w - Tools::p_huber_grad(e, threshold) * big_G) / m;
 		memcpy(g, grad.data(), sizeof(float) * N);
-
 		return cost;
 	}
 

@@ -2,6 +2,7 @@
 #include "math_sse2.h"
 #include "math_avx.h"
 #include <Eigen/Core>
+#include <Eigen/SVD>
 using namespace Eigen;
 
 
@@ -28,7 +29,20 @@ public:
 		return G;
 	}
 
-
+	static MatrixXf kernel_pca(MatrixXf &G, MatrixXf &U, int d) {
+		
+		if (U.rows() < 1 && U.cols() < 1)
+		{
+			// center G
+			int m = (int)G.rows();
+			MatrixXf one = MatrixXf::Ones(m, m) / m;
+			MatrixXf G_center = G - one * G - G * one + one * G *one;
+			JacobiSVD<MatrixXf> svd(G_center, ComputeThinU);
+			U.resize(m, d);	memcpy(U.data(), svd.matrixU().data(), sizeof(float) * m *d);
+			U = U.array() / (MatrixXf::Ones(m, 1) *  (U.colwise().norm())).array();
+		}
+		return G * U;
+	}
 
 	// Eigen for featureNormalize  row by default
 	static MatrixXf featureNormalize(MatrixXf &X, MatrixXf &mu, MatrixXf &sigma, bool row = true){
@@ -78,17 +92,17 @@ public:
 
 	// pseudo huber cost
 	static float p_huber_cost(MatrixXf &x, float threshold) {
-//		return threshold * threshold * (((x.array() / threshold).square() + 1).sqrt() - 1).sum();
-		return phuber_cost_avx_f(x.rows(), x.data(), threshold);
+		return threshold * threshold * (((x.array() / threshold).square() + 1).sqrt() - 1).sum();
+//		return phuber_cost_avx_f(x.rows(), x.data(), threshold);
 	}
 	// pseudo huber grad
 	static MatrixXf p_huber_grad(MatrixXf &x, float threshold) {
-//		return (x.array() / ((x.array() / threshold).square() + 1).sqrt()).transpose();
+		return (x.array() / ((x.array() / threshold).square() + 1).sqrt()).transpose();
 		
-		size_t dimension = x.size();
-		MatrixXf grad(1, dimension);
-		phuber_grad_avx_f(dimension, x.data(), grad.data(), threshold);
-		return grad;
+		//size_t dimension = x.size();
+		//MatrixXf grad(1, dimension);
+		//phuber_grad_avx_f(dimension, x.data(), grad.data(), threshold);
+		//return grad;
 	}
 
 
