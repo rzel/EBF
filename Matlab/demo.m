@@ -6,8 +6,8 @@ re_clean = 1;
 display = 1;
 
 %%load data
-path_a='..\data\image047.jpg';
-path_b='..\data\image048.jpg';
+path_a='..\data\0011.jpg';
+path_b='..\data\0012.jpg';
 
 %pre-process image 
 res = 480;
@@ -23,7 +23,7 @@ img2 = single(rgb2gray(image2));
 % numTiltes : ASIFT paramter, defalut is 7, but 3 is OK.
 disp('start asift');
 resize = 0;
-numTiltes = 3;
+numTiltes = 7;
 tic();
 [f1, f2, d1, d2] = ASIFT(img1, img2, numTiltes, resize);
 toc();
@@ -33,11 +33,11 @@ disp('start matching');
 tic();
 [matches_all, quality] = cv_match(d1, d2);
 
-%matches = matches_all(:, quality > 1.5);
+matches = matches_all(:, quality > 1.5);
 
-num = max(size(matches_all, 2) / 100, 20);
-[a, b] = sort(quality, 'descend');
-matches = matches_all(:, b(1 : uint16(num)));
+% num = max(size(matches_all, 2) / 100, 20);
+% [a, b] = sort(quality, 'descend');
+% matches = matches_all(:, b(1 : uint16(num)));
 % matches_all(:, 500 : end) = [];
 
 toc();
