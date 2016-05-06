@@ -3,12 +3,12 @@
 
 class getInlier{
 public:
-	static void likehood(MatrixXf &w, MatrixXf &G, MatrixXf &X_query, MatrixXf &matching, double inlier_threshold){
-		MatrixXi inlier_idx = ((1 - (G * w).array()).abs() < inlier_threshold).cast<int>();
+	static void likehood(MatrixXf &w, MatrixXf &X_query, MatrixXf &matching, double inlier_threshold){
+		MatrixXf G = Tools::get_GSM_fast(X_query);	
+		MatrixXi inlier_idx =  ((G * w).array() > inlier_threshold).cast<int>();
 		int num_inlier = inlier_idx.array().sum();
 
 		MatrixXf temp_X_query(4, num_inlier), temp_matching(4, num_inlier);
-
 		int cur = 0;
 		// filter X_query and matching
 		for (int i = 0; i < inlier_idx.size(); i++){
@@ -20,13 +20,11 @@ public:
 		assert(num_inlier == cur);
 		X_query = temp_X_query;
 		matching = temp_matching;
-//		X_query = X_query.leftCols(num_inlier);
-//		matching = matching.leftCols(num_inlier);
 	}
 
-	static void likehood_all(MatrixXf &w, MatrixXf &U, MatrixXf &X_all, MatrixXf &X_query, MatrixXf &matching_all, double inlier_threshold){
-		MatrixXf G = Tools::get_GSM_fast(X_all, X_query) * U;
-		MatrixXi inlier_idx = ((1 - (G * w).array()).abs() < inlier_threshold).cast<int>();
+	static void likehood_all(MatrixXf &w, MatrixXf &X_all, MatrixXf &X_query, MatrixXf &matching_all, double inlier_threshold){
+		MatrixXf G = Tools::get_GSM_fast(X_all, X_query);
+		MatrixXi inlier_idx = ((G * w).array() > inlier_threshold).cast<int>();
 		int num_inlier = inlier_idx.array().sum();
 	
 		MatrixXf temp_X_all(4, num_inlier), temp_matching(4, num_inlier);
@@ -40,11 +38,8 @@ public:
 			cur++;
 		}
 		assert(num_inlier == cur);
-
 		X_all = temp_X_all;
 		matching_all = temp_matching;
-//		X_all = X_all.leftCols(num_inlier);
-//		matching_all = matching_all.leftCols(num_inlier);
 	}
 
 

@@ -8,7 +8,7 @@
 #define LIKEHOOD_THRESH		0.1
 #define BILATERAL_THRESH	0.01
 #define SIFT_MATCH_RATIO	0.66
-#define MAX_QUERY_NUMBER	1000
+#define MAX_QUERY_NUMBER	200
 
 MatrixXf filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vector<double> &priority)
 {
@@ -59,38 +59,22 @@ MatrixXf filter_matches(FRAME &F1, FRAME &F2, vector<DMatch> &matches_all, vecto
 
 
 	// learning likehood weight
-clock_t bg = clock();
-	MatrixXf w;
-	likehood_function lhf(X_query, HUBER_THRESH);
-clock_t ed = clock();
-	cout << "likehood SVD : " << ed - bg << "ms         "<< endl;
-
-bg = clock();
-	lhf.optimize(w);
-ed = clock();
-	cout << "likehood learning time : " << ed - bg << "ms         " << endl;
+	MatrixXf w = MatrixXf::Ones(X_query.cols(), 1).array() / X_query.cols();
 	// get inlier by likehood  must first to likehood_all, because likehood will change X_query.
-	getInlier::likehood_all(w, lhf.U, X_all, X_query, matching_all, LIKEHOOD_THRESH);
-	getInlier::likehood(w, lhf.G,X_query, matching_query, LIKEHOOD_THRESH);
+	getInlier::likehood_all(w, X_all, X_query, matching_all, LIKEHOOD_THRESH);
+	getInlier::likehood(w,X_query, matching_query, LIKEHOOD_THRESH);
+	
 	cout <<endl<< matching_all.cols() << endl;
 	if (X_query.cols() < 1) { return matching_all; }
 
 
-	// learning bilateral function weight
-bg = clock();
+	//// learning bilateral function weight
 	bilateral_function blf(X_query, matching_query, BILATERAL_THRESH);
-ed = clock();
-	cout << "likehood SVD : " << ed - bg << "ms         " << endl;
 	MatrixXf w1, w2;
-bg = clock();
 	blf.optimize(w1, w2);
-ed = clock();
-	cout << "bf lerning  time : " << ed - bg << "ms         " << endl;
 	// get inlier by bilateral function
-bg = clock();
 	getInlier::bilateral_function(w1, w2, blf.U,X_all, X_query, matching_all, BILATERAL_THRESH);
-ed = clock();
-	cout << "bf filter  time : " << ed - bg << "ms         " << matching_all.cols() << endl;
+
 
 	return matching_all;
 }
